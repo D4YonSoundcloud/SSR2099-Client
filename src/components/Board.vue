@@ -331,7 +331,7 @@
 		    	if(numUpward < 100) {
 		    		this[attackTiles].push(numUpward)
 
-				    if(this.boardState[numUpward] === 100){
+				    if(this.boardState[numUpward] === 10){
 					    this[tempTiles].push(0)
 				    } else {
 					    this[tempTiles].push(this.boardState[numUpward])
