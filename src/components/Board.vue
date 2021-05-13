@@ -1,23 +1,34 @@
 <template>
     <div class="board-container" :style="boardContainerStyle">
+        <PlayerUI :enemy="false"></PlayerUI>
         <div class="board" :style="boardStyle">
             <BoardPiece :pieceIndex="index"  v-for="(piece, index) in boardState" :key="index"
                         :state="piece" :playerIndex="index === playerIndex ? playerIndex : undefined"
                         :pieceWidth="boardPieceHeightAndWidth" :playerStatus="index === playerIndex ? playerStatus : 'normal'"
                         :enemyIndex="index === enemyIndex ? enemyIndex : undefined" :enemyStatus="enemyStatus"
-                        :pieceHeight="boardPieceHeightAndWidth"></BoardPiece>
+                        :pieceHeight="boardPieceHeightAndWidth">
+            </BoardPiece>
+            <h1 v-if="gameOver === true" style="margin-top: 8px">
+                <mark style="padding: 4px">Game Over!</mark>
+                Someone
+                <mark style="padding: 4px">won</mark>,
+                and someone <mark style="padding: 4px">lost</mark>
+            </h1>
         </div>
+        <PlayerUI :enemy="true"></PlayerUI>
     </div>
 </template>
 
 <script>
     import Vue from 'vue'
     import BoardPiece from "./BoardPiece";
+    import PlayerUI from "./PlayerUI";
 	export default {
 		name: "Board",
-        components:{BoardPiece},
+        components:{BoardPiece, PlayerUI},
         data(){
 			return{
+			    gameOver: false,
 				boardState:[
 					0,0,0,0,0,0,0,0,0,0,
 					0,0,0,0,0,0,0,2,0,0,
@@ -44,7 +55,7 @@
 				enemyAttackTiles:[],
 				enemyAttackTempTilesState:[],
 				boardWidth: 500,
-                boardHeight: 250,
+                boardHeight: 500,
                 keyCodes:{
 					37: 'left',
                     38: 'up',
@@ -98,6 +109,24 @@
                     width: this.boardWidth + 'px',
                     display: 'flex',
                     flexFlow: 'row wrap'
+                }
+            },
+            playerLivesStore(){
+			    return this.$store.state.playerLivesStore
+            },
+            enemyLivesStore(){
+			    return this.$store.state.enemyLivesStore
+            }
+        },
+        watch:{
+            playerLivesStore(){
+                if(this.playerLivesStore < 1){
+                    return this.gameOver = true;
+                }
+            },
+            enemyLivesStore(){
+                if(this.enemyLivesStore < 1){
+                    return this.gameOver = false;
                 }
             }
         },
@@ -230,10 +259,11 @@
 		    	//decide if this is player 1 or player 2
 	            let playerIndex = this.playerKeyCodes.includes(eventKeyCode) ? this.playerIndex : this.enemyIndex
                 let playerState = this.playerKeyCodes.includes(eventKeyCode) ? this.playerState : this.enemyState
+                let playerStatus = this.playerKeyCodes.includes(eventKeyCode) ? this.playerStatus : this.enemyStatus;
 
-                console.log( playerIndex, playerState,)
 		    	//if there is a piece you are moving off of is not blank, then this will make sure it stays
 	            if(this.previousPieceState !== 0) {
+	                //code for deciding if it is the 1st or 2nd player
 	            	if(this.playerKeyCodes.includes(eventKeyCode)){
 	            		this.playerIndex = newPlayerIndex;
 	            		playerIndex = this.playerIndex;
@@ -250,10 +280,11 @@
 		    	let temp = 0;
 	            //decide status if the tile we are moving to is not blank
 		    	if(this.boardState[nonPlayerIndex] !== 0) {
-		    		this.decideStatus(this.playerStatus, this.boardState[nonPlayerIndex]);
+		    		this.decideStatus(playerStatus, this.boardState[nonPlayerIndex]);
                     this.previousPieceState = this.boardState[nonPlayerIndex]
                 }
 
+		    	//code for deciding if it is the 1st or 2nd player
 	            if(this.playerKeyCodes.includes(eventKeyCode)){
 		            this.playerIndex = newPlayerIndex;
 		            playerIndex = this.playerIndex;
@@ -264,11 +295,11 @@
 	            this.boardState[playerIndex] = playerState;
 	            this.boardState[playerIndex + this.swapLookUpTable[keyCode]] = temp;
             },
-            decideStatus(playerStatus, pieceState){
-		    	console.log(playerStatus)
+            decideStatus(playerStatus, pieceState, eventKeyCode){
+                let statusString = this.playerKeyCodes.includes(eventKeyCode) ? 'playerStatus' : 'enemyStatus';
                 switch (pieceState) {
-                	case 2: return this.playerStatus = this.playerStatusFireLookUpTable[playerStatus]
-                    case 3: return this.playerStatus = this.playerStatusWaterLookUpTable[playerStatus]
+                	case 2: return this[statusString] = this.playerStatusFireLookUpTable[playerStatus]
+                    case 3: return this[statusString] = this.playerStatusWaterLookUpTable[playerStatus]
                 }
             },
             attackCoolDown(enemy){
@@ -290,13 +321,17 @@
                 let addTileIndex = currentPlayerIndex - 1;
 		    	let tempTiles = enemy ? 'enemyAttackTempTilesState' : 'playerAttackTempTilesState'
 		    	let attackTiles = enemy ? 'enemyAttackTiles' : 'playerAttackTiles'
+                let livesAmountDispatchString = enemy ? 'getChangePlayerLives' : 'getChangeEnemyLives'
+                let livesAmountString = enemy ? 'playerLivesStore' : 'enemyLivesStore'
 
 		    	for(let i = 0; i < numToSubtract; i++) {
 		    		subtractTileIndex--;
 		    		if(subtractTileIndex !== currentPlayerIndex) {
-		    			if(this.boardState[subtractTileIndex === 100]){
-		    				console.log('it worked!')
+		    			if(this.boardState[subtractTileIndex === 10] || this.boardState[subtractTileIndex] === 11){
 						    this[tempTiles].push(0)
+                        } else if (this.boardState[subtractTileIndex] === 1 || this.boardState[subtractTileIndex] === 100) {
+                            this.handleLivesAmount(livesAmountDispatchString, livesAmountString)
+                            continue;
                         } else {
 						    this[tempTiles].push(this.boardState[subtractTileIndex])
                         }
@@ -306,10 +341,13 @@
 		    	for(let i = 0; i < numToAdd; i++){
 		    		addTileIndex++;
 		    		if(addTileIndex !== currentPlayerIndex){
-					    if(this.boardState[subtractTileIndex] === 100){
+					    if(this.boardState[addTileIndex] === 10 || this.boardState[addTileIndex] === 11){
 						    this[tempTiles].push(0)
-					    } else {
-						    this[tempTiles].push(this.boardState[subtractTileIndex])
+					    } else if (this.boardState[addTileIndex] === 1 || this.boardState[addTileIndex] === 100) {
+                            this.handleLivesAmount(livesAmountDispatchString, livesAmountString)
+                            continue;
+                        } else {
+						    this[tempTiles].push(this.boardState[addTileIndex])
 					    }
 					    this[attackTiles].push(addTileIndex)
                     }
@@ -318,54 +356,67 @@
             async findAttackTilesVertical(numDownward, numUpward, enemy){
 	            let tempTiles = enemy ? 'enemyAttackTempTilesState' : 'playerAttackTempTilesState'
 	            let attackTiles = enemy ? 'enemyAttackTiles' : 'playerAttackTiles'
+                let livesAmountDispatchString = enemy ? 'getChangePlayerLives' : 'getChangeEnemyLives'
+                let livesAmountString = enemy ? 'playerLivesStore' : 'enemyLivesStore'
 
-		    	if(numDownward > 0) {
-		    		this[attackTiles].push(numDownward);
-
-				    if(this.boardState[numDownward] === 100){
+		    	if(numDownward >= 0) {
+				    if(this.boardState[numDownward] === 10 || this.boardState[numDownward] === 11){
 					    this[tempTiles].push(0)
-				    } else {
+                        this[attackTiles].push(numDownward);
+				    } else if (this.boardState[numDownward] === 1 || this.boardState[numDownward] === 100) {
+                        this.handleLivesAmount(livesAmountDispatchString, livesAmountString)
+                    } else {
 					    this[tempTiles].push(this.boardState[numDownward])
+                        this[attackTiles].push(numDownward);
 				    }
 			    }
 		    	if(numUpward < 100) {
-		    		this[attackTiles].push(numUpward)
-
-				    if(this.boardState[numUpward] === 10){
+				    if(this.boardState[numUpward] === 10 || this.boardState[numUpward] === 11){
+                        this[attackTiles].push(numUpward)
 					    this[tempTiles].push(0)
-				    } else {
+				    } else if (this.boardState[numUpward] === 1 || this.boardState[numUpward] === 100) {
+                        this.handleLivesAmount(livesAmountDispatchString, livesAmountString)
+                    } else {
 					    this[tempTiles].push(this.boardState[numUpward])
+                        this[attackTiles].push(numUpward)
 				    }
 			    }
 
-                while(numDownward - 10 > 0){
+                while(numDownward - 10 >= 0){
                 	numDownward = numDownward - 10;
-                	this[attackTiles].push(numDownward);
 
-	                if(this.boardState[numDownward] === 100){
+	                if(this.boardState[numDownward] === 10 || this.boardState[numDownward] === 11){
 		                this[tempTiles].push(0)
-	                } else {
+	                } else if (this.boardState[numDownward] === 1 || this.boardState[numDownward] === 100) {
+                        this.handleLivesAmount(livesAmountDispatchString, livesAmountString)
+                        continue;
+                    } else {
 		                this[tempTiles].push(this.boardState[numDownward])
 	                }
+
+                	this[attackTiles].push(numDownward);
                 }
                 while(numUpward + 10 < 100){
                 	numUpward = numUpward + 10;
-                	this[attackTiles].push(numUpward);
 
-	                if(this.boardState[numUpward] === 100){
+	                if(this.boardState[numUpward] === 10 || this.boardState[numUpward] === 11){
 		                this[tempTiles].push(0)
-	                } else {
+	                } else if (this.boardState[numUpward] === 1 || this.boardState[numUpward] === 100) {
+                        this.handleLivesAmount(livesAmountDispatchString, livesAmountString)
+                        continue;
+                    } else {
 		                this[tempTiles].push(this.boardState[numUpward])
 	                }
+
+                	this[attackTiles].push(numUpward);
                 }
             },
             async assignAttackTiles(direction,enemy){
 	            let attackTiles = enemy ? 'enemyAttackTiles' : 'playerAttackTiles'
 
-		        for(let attackTile of this[attackTiles]){
-		        	console.log(attackTile,this.boardState[attackTile])
+		        this[attackTiles].forEach((attackTile,index) =>{
                     Vue.set(this.boardState, attackTile, direction === 'horizontal' ? 10 : 11)
-                }
+                })
             },
             async resetAttackTiles(enemy){
 	            let tempTiles = enemy ? 'enemyAttackTempTilesState' : 'playerAttackTempTilesState'
@@ -375,20 +426,23 @@
 	            	console.log(value, index, this[tempTiles][index])
                     Vue.set(this.boardState, value, this[tempTiles][index])
 	            })
+            },
+            handleLivesAmount(livesAmountDispatchString, livesAmountString){
+		        this.$store.dispatch(livesAmountDispatchString, this[livesAmountString] - 1)
             }
         },
         created(){
-			console.log(this['playerIndex']);
-			//TODO, handle diagonal movement
 			this.boardState[this.playerIndex] = this.playerState
 			this.boardState[this.enemyIndex] = this.enemyState
 
             window.addEventListener('keydown', (e) => {
+                if(this.gameOver === true) return
             	if(e.key === 'f' || e.key === 'v') return this.playerStatus = 'charging'
                 if(e.key === '0') return this.enemyStatus = 'charging'
             	return this.handleKeyDownEvent(e);
             })
             window.addEventListener('keyup', (e) => {
+                if(this.gameOver === true) return
             	if(this.playerStatus === 'charging') {
             		return this.handleAttack(e, false);
                 } else if (this.enemyStatus === 'charging'){
