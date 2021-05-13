@@ -2,6 +2,7 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Home from '../views/Home.vue'
 import Board from "../components/Board";
+import BoardMultiplayer from "../components/BoardMultiplayer";
 
 Vue.use(VueRouter)
 
@@ -10,6 +11,11 @@ const routes = [
     path: '/',
     name: 'Board',
     component: Board
+  },
+  {
+    path: '/multiplayer',
+    name: 'Multiplayer',
+    component: BoardMultiplayer
   },
   {
     path: '/about',

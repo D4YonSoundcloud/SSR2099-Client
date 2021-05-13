@@ -1,11 +1,14 @@
 <template>
   <div id="app">
     <div id="nav">
-      <router-link to="/">Test</router-link>
+      <router-link to="/">Local </router-link>
+      <router-link to="/multiplayer"> Online </router-link>
     </div>
     <router-view/>
   </div>
 </template>
+<script>
+</script>
 <style>
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;

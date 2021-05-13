@@ -1,6 +1,6 @@
 <template>
     <div class="board-container" :style="boardContainerStyle">
-        <PlayerUI :enemy="false"></PlayerUI>
+        <PlayerUI :enemy="false" :multiplayer="false"></PlayerUI>
         <div class="board" :style="boardStyle">
             <BoardPiece :pieceIndex="index"  v-for="(piece, index) in boardState" :key="index"
                         :state="piece" :playerIndex="index === playerIndex ? playerIndex : undefined"
@@ -8,18 +8,20 @@
                         :enemyIndex="index === enemyIndex ? enemyIndex : undefined" :enemyStatus="enemyStatus"
                         :pieceHeight="boardPieceHeightAndWidth">
             </BoardPiece>
-            <h1 v-if="gameOver === true" style="margin-top: 8px">
+            <h1 v-if="gameOver === true" style="margin-top: 16px">
                 <mark style="padding: 4px">Game Over!</mark>
-                Someone
+                {{playerLivesStore < 1 ? 'Player 2' : 'Player 1'}}
                 <mark style="padding: 4px">won</mark>,
-                and someone <mark style="padding: 4px">lost</mark>
+                and {{playerLivesStore < 1 ? 'Player 1' : 'Player 2' }}
+                <mark style="padding: 4px">lost</mark>
             </h1>
         </div>
-        <PlayerUI :enemy="true"></PlayerUI>
+        <PlayerUI :enemy="true" :multiplayer="false"></PlayerUI>
     </div>
 </template>
 
 <script>
+
     import Vue from 'vue'
     import BoardPiece from "./BoardPiece";
     import PlayerUI from "./PlayerUI";
@@ -86,7 +88,7 @@
                     'wet': 'dead',
                     'fire': 'dry',
                     'dry': 'wet',
-                }
+                },
             }
         },
         computed:{
@@ -126,7 +128,7 @@
             },
             enemyLivesStore(){
                 if(this.enemyLivesStore < 1){
-                    return this.gameOver = false;
+                    return this.gameOver = true;
                 }
             }
         },
@@ -429,26 +431,33 @@
             },
             handleLivesAmount(livesAmountDispatchString, livesAmountString){
 		        this.$store.dispatch(livesAmountDispatchString, this[livesAmountString] - 1)
+            },
+            handleKeyDownEventListener(e){
+	            if(this.gameOver === true) return
+	            if(e.key === 'f' || e.key === 'v') return this.playerStatus = 'charging'
+	            if(e.key === '0') return this.enemyStatus = 'charging'
+	            return this.handleKeyDownEvent(e);
+            },
+            handleKeyUpEventListener(e){
+	            if(this.gameOver === true) return
+	            if(this.playerStatus === 'charging') {
+		            return this.handleAttack(e, false);
+	            } else if (this.enemyStatus === 'charging'){
+		            return this.handleAttack(e, true)
+	            }
             }
         },
         created(){
 			this.boardState[this.playerIndex] = this.playerState
 			this.boardState[this.enemyIndex] = this.enemyState
 
-            window.addEventListener('keydown', (e) => {
-                if(this.gameOver === true) return
-            	if(e.key === 'f' || e.key === 'v') return this.playerStatus = 'charging'
-                if(e.key === '0') return this.enemyStatus = 'charging'
-            	return this.handleKeyDownEvent(e);
-            })
-            window.addEventListener('keyup', (e) => {
-                if(this.gameOver === true) return
-            	if(this.playerStatus === 'charging') {
-            		return this.handleAttack(e, false);
-                } else if (this.enemyStatus === 'charging'){
-            		return this.handleAttack(e, true)
-                }
-            })
+            window.addEventListener('keydown', this.handleKeyDownEventListener)
+            window.addEventListener('keyup', this.handleKeyUpEventListener)
+        },
+        beforeDestroy(){
+			console.log('removing the event listeners')
+			window.removeEventListener('keydown', this.handleKeyDownEventListener);
+			window.removeEventListener('keyup', this.handleKeyUpEventListener)
         }
 	}
 </script>
