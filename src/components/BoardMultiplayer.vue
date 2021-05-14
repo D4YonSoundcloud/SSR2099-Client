@@ -157,12 +157,8 @@
                         this.assignPlayerInfo(data)
                     })
 	            })
-	            this.socket.on('giveGridState', data => {
-	            	if(this.boardState === data.gridState) {
-		                this.boardState = data.gridState;
-                    } else {
-	            		console.log('the boards are different, but why?')
-                    }
+	            this.socket.once('giveGridState', data => {
+                    this.boardState = data.gridState;
 		            console.log(data.gridState, this.boardState, this.playerUserName);
 	            })
             },
