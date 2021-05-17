@@ -1,6 +1,6 @@
 <template>
     <div class="board-container" :style="boardContainerStyle">
-        <PlayerUI :enemy="false" :playerUsername="this.users[0]" :multiplayer="true"></PlayerUI>
+        <PlayerUI :enemy="false" :playerUsername="this.users[0]" :multiplayer="true" :playerLives="playerLives"></PlayerUI>
         <div class="board" :style="boardStyle">
             <BoardPiece :pieceIndex="index"  v-for="(piece, index) in boardState" :key="index"
                         :state="piece" :playerIndex="index === playerIndex ? playerIndex : undefined"
@@ -10,13 +10,13 @@
             </BoardPiece>
             <h1 v-if="gameOver === true" style="margin-top: 16px">
                 <mark style="padding: 4px">Game Over!</mark>
-                {{playerLivesStore < 1 ? 'Player 2' : 'Player 1'}}
+                {{playerLivesStore < 1 ? users[0] : users[1]}}
                 <mark style="padding: 4px">won</mark>,
-                and {{playerLivesStore < 1 ? 'Player 1' : 'Player 2' }}
+                and {{playerLivesStore < 1 ? users[1] : users[0]}}
                 <mark style="padding: 4px">lost</mark>
             </h1>
         </div>
-        <PlayerUI :enemy="true" :playerUsername="this.users[1]" :multiplayer="true"></PlayerUI>
+        <PlayerUI :enemy="true" :playerUsername="this.users[1]" :multiplayer="true" :enemyLives="enemyLives"></PlayerUI>
     </div>
 </template>
 
@@ -93,6 +93,9 @@
 				socket: io('http://localhost:4000/'),
 				playerUserName: '',
 				users:[],
+                attackPressed: false,
+                playerLives: 3,
+                enemyLives: 3,
 			}
 		},
 		computed:{
@@ -125,13 +128,13 @@
 			}
 		},
 		watch:{
-			playerLivesStore(){
-				if(this.playerLivesStore < 1){
+			playerLives(){
+				if(this.playerLives < 1){
 					return this.gameOver = true;
 				}
 			},
-			enemyLivesStore(){
-				if(this.enemyLivesStore < 1){
+			enemyLives(){
+				if(this.enemyLives < 1){
 					return this.gameOver = true;
 				}
 			}
@@ -163,9 +166,21 @@
                     this.boardState = data.gridState;
 		            console.log(this.boardState, this.playerUserName, 'I have updated the board State');
 	            })
-            },
-            sendBoardToServer(){
-			    this.socket.emit('sendGridState', {grid: this.boardState, username: this.playerUserName})
+                this.socket.on('giveChangePlayerStatus', data => {
+                	this.playerStatus = data.playerOne.status;
+                	this.enemyStatus = data.playerTwo.status;
+                	console.log('player status has been changed');
+                })
+                this.socket.on('givePlayerAttack', data => {
+                	this.boardState = data.boardState;
+                	console.log('attack has been set from socket')
+                })
+                this.socket.on('givePlayerHealth', data => {
+                	console.log(data.playerOne.lives, data.playerTwo.lives)
+                    this.playerLives = data.playerOne.lives
+                    this.enemyLives = data.playerTwo.lives
+                    console.log('player health has been updated from socket')
+                })
             },
 			assignPlayerInfo(data){
 				console.log(this.boardState, data.boardState, this.playerUserName, 'i am calling assign player info')
@@ -192,8 +207,6 @@
 
 				this.boardState[this.playerIndex] = this.playerState
 				this.boardState[this.enemyIndex] = this.enemyState
-
-                // this.sendBoardToServer();
             },
 			handleKeyDownEvent(e) {
 				if(this.playerUserName === this.users[0]){
@@ -219,7 +232,6 @@
 				}
 			},
 			handleAttack(e, enemy){
-				console.log('this is an enemy attacking', enemy)
 				if(this.playerStatus === 'attacking' && enemy === false) return console.log('you are already attacking')
 				if(this.enemyStatus === 'attacking' && enemy === true) return console.log('you are already attacking')
 
@@ -233,26 +245,43 @@
 				let numToSubtract = currentPlayerIndex % 10
 				let numToAdd = this.rowCount - numToSubtract
 
-				enemy ? this.enemyStatus = 'attacking' : this.playerStatus = 'attacking';
+				if(enemy === true) {
+					this.socket.emit('sendChangePlayerStatus', {player: 100, status: 'attacking', index: this.enemyIndex})
+                } else {
+					this.socket.emit('sendChangePlayerStatus', {player: 1, status: 'attacking', index: this.playerIndex})
+                }
 
 				this.findAttackTiles(numToSubtract, numToAdd, currentPlayerIndex, enemy).then(() => {
-					console.log(performance.now());
 					this.assignAttackTiles('horizontal',enemy).then(() => {
-						console.log('attack is on cooldown', performance.now())
+						if(this.playerUserName === this.users[0]){
+							this.socket.emit('sendPlayerAttack', {player: 1, boardState: this.boardState})
+						} else if (this.playerUserName === this.users[1]){
+							this.socket.emit('sendPlayerAttack', {player: 100, boardState: this.boardState})
+						}
+						this.attackPressed = false;
 						this.attackCoolDown(enemy);
 					});
-					console.log(this.playerAttackTiles, this.playerAttackTempTilesState)
-					console.log('this is a horizontal attack', numToSubtract, numToAdd, this.playerIndex)
+					console.log('this is a horizontal attack')
 				});
 			},
 			handleVerticalAttack(currentPlayerIndex, enemy){
 				let trackingNumDownward = currentPlayerIndex - 10;
 				let trackingNumUpward = currentPlayerIndex + 10;
 
-				enemy ? this.enemyStatus = 'attacking' : this.playerStatus = 'attacking';
+				if(enemy === true) {
+					this.socket.emit('sendChangePlayerStatus', {player: 100, status: 'attacking', index: this.enemyIndex})
+				} else {
+					this.socket.emit('sendChangePlayerStatus', {player: 1, status: 'attacking', index: this.playerIndex})
+				}
 
 				this.findAttackTilesVertical(trackingNumDownward, trackingNumUpward, enemy).then(() => {
 					this.assignAttackTiles('vertical', enemy).then(() => {
+						if(this.playerUserName === this.users[0]){
+							this.socket.emit('sendPlayerAttack', {player: 1, boardState: this.boardState})
+						} else if (this.playerUserName === this.users[1]){
+							this.socket.emit('sendPlayerAttack', {player: 100, boardState: this.boardState})
+						}
+						this.attackPressed = false;
 						this.attackCoolDown(enemy)
 					})
 					console.log('this is a vertical attack')
@@ -392,11 +421,23 @@
 				setTimeout(() => {
 					console.log(this.boardState, enemy, 'we are cooling down')
 					this.resetAttackTiles(enemy).then(() => {
+						console.log('we are sending the reset attack')
+						if(this.playerUserName === this.users[0]){
+							this.socket.emit('sendPlayerAttack', {player: 1, boardState: this.boardState})
+						} else if (this.playerUserName === this.users[1]){
+							this.socket.emit('sendPlayerAttack', {player: 100, boardState: this.boardState})
+						}
+
 						let tempTiles = enemy ? 'enemyAttackTempTilesState' : 'playerAttackTempTilesState'
 						let attackTiles = enemy ? 'enemyAttackTiles' : 'playerAttackTiles'
 						let status = enemy ? 'enemyStatus' : 'playerStatus'
 
 						this[status] = 'normal'
+						if(this.playerUserName === this.users[0]){
+							this.socket.emit('sendChangePlayerStatus', {player: 1, status: 'normal', index: this.playerIndex})
+						} else if (this.playerUserName === this.users[1]){
+							this.socket.emit('sendChangePlayerStatus', {player: 100, status: 'normal', index: this.enemyIndex})
+						}
 						this[attackTiles] = [];
 						this[tempTiles] = [];
 					})
@@ -407,8 +448,7 @@
 				let addTileIndex = currentPlayerIndex - 1;
 				let tempTiles = enemy ? 'enemyAttackTempTilesState' : 'playerAttackTempTilesState'
 				let attackTiles = enemy ? 'enemyAttackTiles' : 'playerAttackTiles'
-				let livesAmountDispatchString = enemy ? 'getChangePlayerLives' : 'getChangeEnemyLives'
-				let livesAmountString = enemy ? 'playerLivesStore' : 'enemyLivesStore'
+				let livesAmountString = enemy ? 'playerLives' : 'enemyLives'
 
 				for(let i = 0; i < numToSubtract; i++) {
 					subtractTileIndex--;
@@ -416,7 +456,7 @@
 						if(this.boardState[subtractTileIndex === 10] || this.boardState[subtractTileIndex] === 11){
 							this[tempTiles].push(0)
 						} else if (this.boardState[subtractTileIndex] === 1 || this.boardState[subtractTileIndex] === 100) {
-							this.handleLivesAmount(livesAmountDispatchString, livesAmountString)
+							this.handleLivesAmount(enemy, livesAmountString)
 							continue;
 						} else {
 							this[tempTiles].push(this.boardState[subtractTileIndex])
@@ -430,7 +470,7 @@
 						if(this.boardState[addTileIndex] === 10 || this.boardState[addTileIndex] === 11){
 							this[tempTiles].push(0)
 						} else if (this.boardState[addTileIndex] === 1 || this.boardState[addTileIndex] === 100) {
-							this.handleLivesAmount(livesAmountDispatchString, livesAmountString)
+							this.handleLivesAmount(enemy, livesAmountString)
 							continue;
 						} else {
 							this[tempTiles].push(this.boardState[addTileIndex])
@@ -442,15 +482,14 @@
 			async findAttackTilesVertical(numDownward, numUpward, enemy){
 				let tempTiles = enemy ? 'enemyAttackTempTilesState' : 'playerAttackTempTilesState'
 				let attackTiles = enemy ? 'enemyAttackTiles' : 'playerAttackTiles'
-				let livesAmountDispatchString = enemy ? 'getChangePlayerLives' : 'getChangeEnemyLives'
-				let livesAmountString = enemy ? 'playerLivesStore' : 'enemyLivesStore'
+				let livesAmountString = enemy ? 'playerLives' : 'enemyLives'
 
 				if(numDownward >= 0) {
 					if(this.boardState[numDownward] === 10 || this.boardState[numDownward] === 11){
 						this[tempTiles].push(0)
 						this[attackTiles].push(numDownward);
 					} else if (this.boardState[numDownward] === 1 || this.boardState[numDownward] === 100) {
-						this.handleLivesAmount(livesAmountDispatchString, livesAmountString)
+						this.handleLivesAmount(enemy, livesAmountString)
 					} else {
 						this[tempTiles].push(this.boardState[numDownward])
 						this[attackTiles].push(numDownward);
@@ -461,7 +500,7 @@
 						this[attackTiles].push(numUpward)
 						this[tempTiles].push(0)
 					} else if (this.boardState[numUpward] === 1 || this.boardState[numUpward] === 100) {
-						this.handleLivesAmount(livesAmountDispatchString, livesAmountString)
+						this.handleLivesAmount(enemy, livesAmountString)
 					} else {
 						this[tempTiles].push(this.boardState[numUpward])
 						this[attackTiles].push(numUpward)
@@ -474,7 +513,7 @@
 					if(this.boardState[numDownward] === 10 || this.boardState[numDownward] === 11){
 						this[tempTiles].push(0)
 					} else if (this.boardState[numDownward] === 1 || this.boardState[numDownward] === 100) {
-						this.handleLivesAmount(livesAmountDispatchString, livesAmountString)
+						this.handleLivesAmount(enemy, livesAmountString)
 						continue;
 					} else {
 						this[tempTiles].push(this.boardState[numDownward])
@@ -488,7 +527,7 @@
 					if(this.boardState[numUpward] === 10 || this.boardState[numUpward] === 11){
 						this[tempTiles].push(0)
 					} else if (this.boardState[numUpward] === 1 || this.boardState[numUpward] === 100) {
-						this.handleLivesAmount(livesAmountDispatchString, livesAmountString)
+						this.handleLivesAmount(enemy, livesAmountString)
 						continue;
 					} else {
 						this[tempTiles].push(this.boardState[numUpward])
@@ -513,8 +552,9 @@
 					Vue.set(this.boardState, value, this[tempTiles][index])
 				})
 			},
-			handleLivesAmount(livesAmountDispatchString, livesAmountString){
-				this.$store.dispatch(livesAmountDispatchString, this[livesAmountString] - 1)
+			handleLivesAmount(enemy, livesAmountString){
+				console.log({player: enemy ? 1 : 100, lives: this[livesAmountString] - 1}, 'sending player lives')
+				this.socket.emit('sendPlayerLives', {player: enemy ? 1 : 100, lives: this[livesAmountString] - 1})
 			},
             handleKeyDownListener(e){
 	            if(this.gameOver === true) return
@@ -532,15 +572,22 @@
             },
             handleKeyUpListener(e){
 	            if(this.gameOver === true) return
-	            if(this.playerStatus === 'charging') {
-		            return this.handleAttack(e, false);
-	            } else if (this.enemyStatus === 'charging'){
-		            return this.handleAttack(e, true)
+                if(this.attackPressed === true) return console.log('attack pressed is true')
+
+
+	            if(this.playerStatus === 'charging' && this.playerUserName === this.users[0]) {
+		            this.handleAttack(e, false)
+                    this.attackPressed = true;
+		            return setTimeout(() => { this.attackPressed = false }, 250) ;
+	            } else if (this.enemyStatus === 'charging' && this.playerUserName === this.users[1]){
+		            this.handleAttack(e, true)
+	            	this.attackPressed = true;
+		            return setTimeout(() => { this.attackPressed = false }, 250)
 	            }
             }
 		},
 		created(){
-			this.playerUserName = prompt('please enter a username for the chat', 'Anonymous')
+			this.playerUserName = prompt('please enter a username for the game!', 'Gabbage')
             this.joinServer();
             console.log('we are joining the server');
 

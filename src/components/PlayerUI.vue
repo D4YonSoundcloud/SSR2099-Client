@@ -19,7 +19,7 @@
 <script>
     export default {
         name: "PlayerUI",
-        props: ['enemy', 'playerUsername', 'multiplayer'],
+        props: ['enemy', 'playerUsername', 'multiplayer', 'enemyLives', 'playerLives'],
         computed:{
             mainContainerStyle(){
                 return {
@@ -53,7 +53,11 @@
                 return 'red'
             },
             livesAmount(){
-                return this.enemy ? this.$store.state.enemyLivesStore : this.$store.state.playerLivesStore
+            	if(this.multiplayer === true){
+            		return this.enemy ? this.enemyLives : this.playerLives
+                } else {
+                    return this.enemy ? this.$store.state.enemyLivesStore : this.$store.state.playerLivesStore
+                }
             }
         },
         watch:{
