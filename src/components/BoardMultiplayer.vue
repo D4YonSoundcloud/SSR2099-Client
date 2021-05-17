@@ -139,8 +139,9 @@
 		methods:{
 			joinServer(){
 				console.log('we are trying to join the server');
+				//does not get called when the other user joins because it is socket.emit in Server.js, not io.emit
 				this.socket.on('userJoined', data => {
-					console.log(data);
+					console.log('calling UserJoined');
 					this.users = data.users;
 					this.socket.emit('newUser', this.playerUserName);
 					console.log('called emit new user', this.playerUserName)
@@ -153,20 +154,24 @@
 	            this.socket.on('userOnline', data => {
 		            this.users = data.users;
 		            console.log(this.users, data.users)
-                    this.socket.on('giveUserInformation', data => {
-                        this.assignPlayerInfo(data)
-                    })
 	            })
-	            this.socket.once('giveGridState', data => {
+	            this.socket.on('giveUserInformation', data => {
+		            this.assignPlayerInfo(data)
+	            })
+	            this.socket.on('giveGridState', data => {
+		            console.log(this.boardState, this.playerUserName, 'I am going to update the board State');
                     this.boardState = data.gridState;
-		            console.log(data.gridState, this.boardState, this.playerUserName);
+		            console.log(this.boardState, this.playerUserName, 'I have updated the board State');
 	            })
             },
             sendBoardToServer(){
-				console.log(this.boardState, this.playerUserName)
-			    this.socket.emit('sendGridState', this.boardState)
+			    this.socket.emit('sendGridState', {grid: this.boardState, username: this.playerUserName})
             },
 			assignPlayerInfo(data){
+				console.log(this.boardState, data.boardState, this.playerUserName, 'i am calling assign player info')
+
+                this.boardState = data.boardState;
+
                 this.playerIndex = data.playerOne.index;
                 this.playerStatus = data.playerOne.status;
                 this.playerState = data.playerOne.state;
@@ -188,9 +193,7 @@
 				this.boardState[this.playerIndex] = this.playerState
 				this.boardState[this.enemyIndex] = this.enemyState
 
-                console.log(this.boardState, this.playerUserName, 'i am calling assign player info')
-
-                this.sendBoardToServer();
+                // this.sendBoardToServer();
             },
 			handleKeyDownEvent(e) {
 				if(this.playerUserName === this.users[0]){
@@ -291,6 +294,13 @@
 					console.log(playerIndex, playerState)
 					this.boardState[this[indexString]] = playerState
 					this.boardState[oldPlayerIndex] = temp;
+
+					this.socket.emit('sendUpdatePlayerIndex', {
+						player: this.playerUserName === this.users[0] ? 1 : 100,
+						index: this[indexString],
+						oldIndex: oldPlayerIndex,
+						oldValue: temp,
+					})
 				} else {
 					this.swap(currentIndex - this.columnCount, this[indexString] - this.columnCount, 'up', indexString)
 				}
@@ -314,6 +324,13 @@
 
 					this.boardState[playerIndex] = playerState
 					this.boardState[oldPlayerIndex] = temp;
+
+					this.socket.emit('sendUpdatePlayerIndex', {
+						player: this.playerUserName === this.users[0] ? 1 : 100,
+						index: this[indexString],
+						oldIndex: oldPlayerIndex,
+						oldValue: temp,
+					})
 				} else {
 					this.swap(currentIndex + this.columnCount, playerIndex + this.columnCount, 'down', indexString)
 				}
@@ -359,9 +376,10 @@
 
 				this.socket.emit('sendUpdatePlayerIndex', {
 					player: this.playerUserName === this.users[0] ? 1 : 100,
-                    index: this[indexString]
+                    index: this[indexString],
+                    oldIndex: this[indexString] + this.swapLookUpTable[keyCode],
+                    oldValue: temp,
                 })
-                this.sendBoardToServer();
 			},
 			decideStatus(playerStatus, pieceState, eventKeyCode){
 				let statusString = this.playerKeyCodes.includes(eventKeyCode) ? 'playerStatus' : 'enemyStatus';
