@@ -30,7 +30,8 @@
                     justifyContent: 'center',
                     alignItems: 'center',
                     marginRight: this.enemy ? 0 : 32 + 'px',
-                    marginLeft: this.enemy ? 32 + 'px' : 0
+                    marginLeft: this.enemy ? 32 + 'px' : 0,
+                    color: 'white',
                 }
             },
             titleStyle(){

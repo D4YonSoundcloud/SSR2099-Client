@@ -3,6 +3,7 @@ import VueRouter from 'vue-router'
 import Home from '../views/Home.vue'
 import Board from "../components/Board";
 import BoardMultiplayer from "../components/BoardMultiplayer";
+import RoomSelect from "../components/RoomSelect";
 
 Vue.use(VueRouter)
 
@@ -15,7 +16,7 @@ const routes = [
   {
     path: '/multiplayer',
     name: 'Multiplayer',
-    component: BoardMultiplayer
+    component: RoomSelect
   },
   {
     path: '/about',

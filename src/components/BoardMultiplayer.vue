@@ -1,6 +1,6 @@
 <template>
     <div class="board-container" :style="boardContainerStyle">
-        <PlayerUI :enemy="false" :playerUsername="this.users[0]" :multiplayer="true" :playerLives="playerLives"></PlayerUI>
+        <PlayerUI :enemy="false" :playerUsername="playerNames[0]" :multiplayer="true" :playerLives="playerLives"></PlayerUI>
         <div class="board" :style="boardStyle">
             <BoardPiece :pieceIndex="index"  v-for="(piece, index) in boardState" :key="index"
                         :state="piece" :playerIndex="index === playerIndex ? playerIndex : undefined"
@@ -10,13 +10,13 @@
             </BoardPiece>
             <h1 v-if="gameOver === true" style="margin-top: 16px">
                 <mark style="padding: 4px">Game Over!</mark>
-                {{playerLivesStore < 1 ? users[0] : users[1]}}
+                {{playerLives < 1 ? playerNames[0] : playerNames[1]}}
                 <mark style="padding: 4px">won</mark>,
-                and {{playerLivesStore < 1 ? users[1] : users[0]}}
+                and {{playerLives < 1 ? playerNames[1] : playerNames[0]}}
                 <mark style="padding: 4px">lost</mark>
             </h1>
         </div>
-        <PlayerUI :enemy="true" :playerUsername="this.users[1]" :multiplayer="true" :enemyLives="enemyLives"></PlayerUI>
+        <PlayerUI :enemy="true" :playerUsername="this.playerNames[1]" :multiplayer="true" :enemyLives="enemyLives"></PlayerUI>
     </div>
 </template>
 
@@ -29,6 +29,7 @@
 	export default {
 		name: "BoardMultiplayer",
 		components:{BoardPiece, PlayerUI},
+        props:['selectedCharacter', 'characterId', 'roomId'],
 		data(){
 			return{
 				gameOver: false,
@@ -90,9 +91,14 @@
 					'fire': 'dry',
 					'dry': 'wet',
 				},
-				socket: io('http://localhost:4000/'),
+				socket: io('http://localhost:4000/', {
+					query: {
+						roomId: this.roomId
+                    }
+                }),
 				playerUserName: '',
 				users:[],
+                playerNames: [],
                 attackPressed: false,
                 playerLives: 3,
                 enemyLives: 3,
@@ -105,7 +111,7 @@
 			boardContainerStyle(){
 				return {
 					paddingTop: 5 + '%',
-					height: 100 + 'vh',
+					height: 100 + '%',
 					width: 100 + 'vw',
 					display: 'flex',
 					justifyContent: 'center',
@@ -145,9 +151,10 @@
 				//does not get called when the other user joins because it is socket.emit in Server.js, not io.emit
 				this.socket.on('userJoined', data => {
 					console.log('calling UserJoined');
-					this.users = data.users;
-					this.socket.emit('newUser', this.playerUserName);
-					console.log('called emit new user', this.playerUserName)
+					this.users = data.userIDs;
+					this.playerNames = data.users;
+					this.socket.emit('newUser', {id: this.characterId, username: this.playerUserName});
+					console.log('called emit new user', this.users, this.playerNames)
 				});
 				this.listen();
 			},
@@ -155,8 +162,9 @@
 	            //call the userOnline function in our socketIO server and push the user received into
 	            //users array
 	            this.socket.on('userOnline', data => {
-		            this.users = data.users;
-		            console.log(this.users, data.users)
+		            this.users = data.userIDs;
+		            this.playerNames = data.users;
+		            console.log(this.users, this.playerNames)
 	            })
 	            this.socket.on('giveUserInformation', data => {
 		            this.assignPlayerInfo(data)
@@ -199,9 +207,9 @@
 				this.enemyAttackTiles = data.playerTwo.attackTiles;
 				this.enemyAttackTempTilesState = data.playerTwo.tempTiles;
 
-				if(this.playerUserName === this.users[0]){
+				if(this.characterId === this.users[0]){
 					console.log('this is player one', this.playerIndex, this.playerStatus)
-                } else if (this.playerUserName === this.users[1]){
+                } else if (this.characterId === this.users[1]){
 					console.log('this is player two', this.enemyIndex, this.playerIndex)
                 }
 
@@ -209,13 +217,14 @@
 				this.boardState[this.enemyIndex] = this.enemyState
             },
 			handleKeyDownEvent(e) {
-				if(this.playerUserName === this.users[0]){
+				if(this.characterId === this.users[0]){
 					if(this.playerStatus === 'charging' || this.playerStatus === 'attacking') return console.log('you cant move');
-                } else if (this.playerUserName === this.users[1]){
+                } else if (this.characterId === this.users[1]){
 					if(this.enemyStatus === 'charging' || this.enemyStatus === 'attacking') return console.log('you cant move');
                 }
 
-				let indexString = this.playerUserName === this.users[0] ? 'playerIndex' : 'enemyIndex'
+				let indexString = this.characterId === this.users[0] ? 'playerIndex' : 'enemyIndex'
+                console.log(indexString, this.characterId, this.users[0])
 
 				if(this.keyCodes[e.keyCode] === 'right') {
 					console.log('right')
@@ -253,9 +262,9 @@
 
 				this.findAttackTiles(numToSubtract, numToAdd, currentPlayerIndex, enemy).then(() => {
 					this.assignAttackTiles('horizontal',enemy).then(() => {
-						if(this.playerUserName === this.users[0]){
+						if(this.characterId === this.users[0]){
 							this.socket.emit('sendPlayerAttack', {player: 1, boardState: this.boardState})
-						} else if (this.playerUserName === this.users[1]){
+						} else if (this.characterId === this.users[1]){
 							this.socket.emit('sendPlayerAttack', {player: 100, boardState: this.boardState})
 						}
 						this.attackPressed = false;
@@ -276,9 +285,9 @@
 
 				this.findAttackTilesVertical(trackingNumDownward, trackingNumUpward, enemy).then(() => {
 					this.assignAttackTiles('vertical', enemy).then(() => {
-						if(this.playerUserName === this.users[0]){
+						if(this.characterId === this.users[0]){
 							this.socket.emit('sendPlayerAttack', {player: 1, boardState: this.boardState})
-						} else if (this.playerUserName === this.users[1]){
+						} else if (this.characterId === this.users[1]){
 							this.socket.emit('sendPlayerAttack', {player: 100, boardState: this.boardState})
 						}
 						this.attackPressed = false;
@@ -305,14 +314,14 @@
 			handleUpKey(currentIndex, indexString){
 				let firstRowEnd = this.columnCount - 1;
 				let lastRowStart = this.boardState.length - this.columnCount;
-				let playerIndex = this.playerUserName === this.users[0] ? this.playerIndex : this.enemyIndex
-				let playerState = this.playerUserName === this.users[0] ? this.playerState : this.enemyState
+				let playerIndex = this.characterId === this.users[0] ? this.playerIndex : this.enemyIndex
+				let playerState = this.characterId === this.users[0] ? this.playerState : this.enemyState
 
 				if(currentIndex <= firstRowEnd){
 					let oldPlayerIndex = currentIndex;
 					let temp = this.boardState[lastRowStart + currentIndex]
 
-					if(this.playerUserName === this.users[0]){
+					if(this.characterId === this.users[0]){
 						this.playerIndex = lastRowStart + currentIndex;
 						playerIndex = this.playerIndex;
 					} else {
@@ -325,7 +334,7 @@
 					this.boardState[oldPlayerIndex] = temp;
 
 					this.socket.emit('sendUpdatePlayerIndex', {
-						player: this.playerUserName === this.users[0] ? 1 : 100,
+						player: this.characterId === this.users[0] ? 1 : 100,
 						index: this[indexString],
 						oldIndex: oldPlayerIndex,
 						oldValue: temp,
@@ -335,8 +344,8 @@
 				}
 			},
 			handleDownKey(currentIndex, indexString){
-				let playerIndex = this.playerUserName === this.users[0] ? this.playerIndex : this.enemyIndex
-				let playerState = this.playerUserName === this.users[0] ? this.playerState : this.enemyState
+				let playerIndex = this.characterId === this.users[0] ? this.playerIndex : this.enemyIndex
+				let playerState = this.characterId === this.users[0] ? this.playerState : this.enemyState
 				let lastRowStart = this.boardState.length - this.columnCount;
 
 				if(currentIndex >= lastRowStart && currentIndex <= this.boardState.length - 1){
@@ -345,7 +354,7 @@
 					let temp = this.boardState[difference]
 					playerIndex = difference;
 
-					if(this.playerUserName === this.users[0]){
+					if(this.characterId === this.users[0]){
 						this.playerIndex = playerIndex;
 					} else {
 						this.enemyIndex = playerIndex;
@@ -355,7 +364,7 @@
 					this.boardState[oldPlayerIndex] = temp;
 
 					this.socket.emit('sendUpdatePlayerIndex', {
-						player: this.playerUserName === this.users[0] ? 1 : 100,
+						player: this.characterId === this.users[0] ? 1 : 100,
 						index: this[indexString],
 						oldIndex: oldPlayerIndex,
 						oldValue: temp,
@@ -366,13 +375,13 @@
 			},
 			swap(nonPlayerIndex, newPlayerIndex, keyCode, indexString){
 				//decide if this is player 1 or player 2
-				let playerState = this.playerUserName === this.users[0] ? 'playerState' : 'enemyState'
-				let playerStatus = this.playerUserName === this.users[0] ? 'playerStatus' : 'enemyStatus'
+				let playerState = this.characterId === this.users[0] ? 'playerState' : 'enemyState'
+				let playerStatus = this.characterId === this.users[0] ? 'playerStatus' : 'enemyStatus'
 
 				//if there is a piece you are moving off of is not blank, then this will make sure it stays
 				if(this.previousPieceState !== 0) {
 					//code for deciding if it is the 1st or 2nd player
-					if(this.playerUserName === this.users[0]){
+					if(this.characterId === this.users[0]){
 						this.playerIndex = newPlayerIndex;
 						this[indexString] = this.playerIndex;
 					} else {
@@ -393,7 +402,7 @@
 				}
 
 				//code for deciding if it is the 1st or 2nd player
-				if(this.playerUserName === this.users[0]){
+				if(this.characterId === this.users[0]){
 					this.playerIndex = newPlayerIndex;
 					this[indexString] = this.playerIndex;
 				} else {
@@ -404,7 +413,7 @@
 				this.boardState[this[indexString] + this.swapLookUpTable[keyCode]] = temp;
 
 				this.socket.emit('sendUpdatePlayerIndex', {
-					player: this.playerUserName === this.users[0] ? 1 : 100,
+					player: this.characterId === this.users[0] ? 1 : 100,
                     index: this[indexString],
                     oldIndex: this[indexString] + this.swapLookUpTable[keyCode],
                     oldValue: temp,
@@ -422,9 +431,9 @@
 					console.log(this.boardState, enemy, 'we are cooling down')
 					this.resetAttackTiles(enemy).then(() => {
 						console.log('we are sending the reset attack')
-						if(this.playerUserName === this.users[0]){
+						if(this.characterId === this.users[0]){
 							this.socket.emit('sendPlayerAttack', {player: 1, boardState: this.boardState})
-						} else if (this.playerUserName === this.users[1]){
+						} else if (this.characterId === this.users[1]){
 							this.socket.emit('sendPlayerAttack', {player: 100, boardState: this.boardState})
 						}
 
@@ -433,9 +442,9 @@
 						let status = enemy ? 'enemyStatus' : 'playerStatus'
 
 						this[status] = 'normal'
-						if(this.playerUserName === this.users[0]){
+						if(this.characterId === this.users[0]){
 							this.socket.emit('sendChangePlayerStatus', {player: 1, status: 'normal', index: this.playerIndex})
-						} else if (this.playerUserName === this.users[1]){
+						} else if (this.characterId === this.users[1]){
 							this.socket.emit('sendChangePlayerStatus', {player: 100, status: 'normal', index: this.enemyIndex})
 						}
 						this[attackTiles] = [];
@@ -559,12 +568,12 @@
             handleKeyDownListener(e){
 	            if(this.gameOver === true) return
 	            if(e.key === 'f' || e.key === 'v' || e.key === '0') {
-		            if(this.playerUserName === this.users[0]){
+		            if(this.characterId === this.users[0]){
 			            this.playerStatus = 'charging'
 			            this.socket.emit('sendChangePlayerStatus', {player: 1, status: 'charging', index: this.playerIndex})
 			            console.log('player 1 is charging')
-		            } else if (this.playerUserName === this.users[1]){
-			            this.playerStatus = 'charging'
+		            } else if (this.characterId === this.users[1]){
+			            this.enemyStatus = 'charging'
 			            this.socket.emit('sendChangePlayerStatus', {player: 100, status: 'charging', index: this.enemyIndex})
 		            }
 	            }
@@ -575,11 +584,11 @@
                 if(this.attackPressed === true) return console.log('attack pressed is true')
 
 
-	            if(this.playerStatus === 'charging' && this.playerUserName === this.users[0]) {
+	            if(this.playerStatus === 'charging' && this.characterId === this.users[0]) {
 		            this.handleAttack(e, false)
                     this.attackPressed = true;
 		            return setTimeout(() => { this.attackPressed = false }, 250) ;
-	            } else if (this.enemyStatus === 'charging' && this.playerUserName === this.users[1]){
+	            } else if (this.enemyStatus === 'charging' && this.characterId === this.users[1]){
 		            this.handleAttack(e, true)
 	            	this.attackPressed = true;
 		            return setTimeout(() => { this.attackPressed = false }, 250)
@@ -587,9 +596,9 @@
             }
 		},
 		created(){
-			this.playerUserName = prompt('please enter a username for the game!', 'Gabbage')
+			this.playerUserName = this.selectedCharacter;
             this.joinServer();
-            console.log('we are joining the server');
+            console.log('we are joining the server', this.characterId, this.roomId);
 
 			window.addEventListener('keydown', this.handleKeyDownListener)
 			window.addEventListener('keyup', this.handleKeyUpListener)
