@@ -115,7 +115,7 @@
 					width: 100 + 'vw',
 					display: 'flex',
 					justifyContent: 'center',
-					alignContent: 'center'
+					alignContent: 'center',
 				}
 			},
 			boardStyle(){
@@ -123,7 +123,9 @@
 					height: this.boardHeight + 'px',
 					width: this.boardWidth + 'px',
 					display: 'flex',
-					flexFlow: 'row wrap'
+					flexFlow: 'row wrap',
+					backgroundColor: '#3e0761',
+					boxShadow: '0 0 20px 1px #151415',
 				}
 			},
 			playerLivesStore(){
@@ -300,15 +302,21 @@
 			handleRightKey(currentIndex, indexString){
                 console.log(currentIndex, indexString, this[indexString])
 				if ((currentIndex + 1)%this.columnCount === 0) {
+					if(this.boardState[currentIndex + 1] === 25) return console.log('this is a wall')
+
 					this.swap(currentIndex - (this.columnCount - 1), this[indexString] - (this.columnCount - 1),'rightWall', indexString)
 				} else {
+					if(this.boardState[currentIndex + 1] === 25) return console.log('this is a wall')
+
 					this.swap(currentIndex + 1, this[indexString] + 1,'right', indexString)
 				}
 			},
 			handleLeftKey(currentIndex, indexString){
 				if ((currentIndex + 1)%this.columnCount === 1) {
+					if(this.boardState[currentIndex - 1] === 25) return console.log('this is a wall')
 					this.swap(currentIndex + (this.columnCount - 1), this[indexString] + (this.columnCount - 1),'leftWall', indexString)
 				} else {
+					if(this.boardState[currentIndex - 1] === 25) return console.log('this is a wall')
 					this.swap(currentIndex - 1, this[indexString] - 1, 'left', indexString)
 				}
 			},
@@ -321,6 +329,8 @@
 				if(currentIndex <= firstRowEnd){
 					let oldPlayerIndex = currentIndex;
 					let temp = this.boardState[lastRowStart + currentIndex]
+
+					if(temp === 25) return console.log('there is a wall here')
 
 					if(this.characterId === this.users[0]){
 						this.playerIndex = lastRowStart + currentIndex;
@@ -341,6 +351,8 @@
 						oldValue: temp,
 					})
 				} else {
+					if(this.boardState[playerIndex - this.columnCount] === 25) return console.log('you are hitting a wall dude')
+
 					this.swap(currentIndex - this.columnCount, this[indexString] - this.columnCount, 'up', indexString)
 				}
 			},
@@ -354,6 +366,8 @@
 					let oldPlayerIndex = currentIndex;
 					let temp = this.boardState[difference]
 					playerIndex = difference;
+
+					if(temp === 25) return console.log('there is a wall here')
 
 					if(this.characterId === this.users[0]){
 						this.playerIndex = playerIndex;
@@ -371,6 +385,8 @@
 						oldValue: temp,
 					})
 				} else {
+					if(this.boardState[playerIndex + this.columnCount] === 25) return console.log('you are hitting a wall bro')
+
 					this.swap(currentIndex + this.columnCount, playerIndex + this.columnCount, 'down', indexString)
 				}
 			},
@@ -463,6 +479,8 @@
 				for(let i = 0; i < numToSubtract; i++) {
 					subtractTileIndex--;
 					if(subtractTileIndex !== currentPlayerIndex) {
+						if(this.boardState[subtractTileIndex] === 25) break;
+
 						if(this.boardState[subtractTileIndex === 10] || this.boardState[subtractTileIndex] === 11){
 							this[tempTiles].push(0)
 						} else if (this.boardState[subtractTileIndex] === 1 || this.boardState[subtractTileIndex] === 100) {
@@ -477,6 +495,8 @@
 				for(let i = 0; i < numToAdd; i++){
 					addTileIndex++;
 					if(addTileIndex !== currentPlayerIndex){
+						if(this.boardState[addTileIndex] === 25) break;
+
 						if(this.boardState[addTileIndex] === 10 || this.boardState[addTileIndex] === 11){
 							this[tempTiles].push(0)
 						} else if (this.boardState[addTileIndex] === 1 || this.boardState[addTileIndex] === 100) {
@@ -495,7 +515,9 @@
 				let livesAmountString = enemy ? 'playerLives' : 'enemyLives'
 
 				if(numDownward >= 0) {
-					if(this.boardState[numDownward] === 10 || this.boardState[numDownward] === 11){
+					if(this.boardState[numDownward] === 25) {
+						console.log('you are hitting a wall downward')
+					} else if(this.boardState[numDownward] === 10 || this.boardState[numDownward] === 11){
 						this[tempTiles].push(0)
 						this[attackTiles].push(numDownward);
 					} else if (this.boardState[numDownward] === 1 || this.boardState[numDownward] === 100) {
@@ -506,7 +528,9 @@
 					}
 				}
 				if(numUpward < 100) {
-					if(this.boardState[numUpward] === 10 || this.boardState[numUpward] === 11){
+					if(this.boardState[numUpward] === 25){
+						console.log('you are hitting a wall upward')
+					} else if(this.boardState[numUpward] === 10 || this.boardState[numUpward] === 11){
 						this[attackTiles].push(numUpward)
 						this[tempTiles].push(0)
 					} else if (this.boardState[numUpward] === 1 || this.boardState[numUpward] === 100) {
@@ -519,6 +543,9 @@
 
 				while(numDownward - 10 >= 0){
 					numDownward = numDownward - 10;
+
+					if(this.boardState[numDownward + 10] === 25) break;
+					if(this.boardState[numDownward] === 25) break;
 
 					if(this.boardState[numDownward] === 10 || this.boardState[numDownward] === 11){
 						this[tempTiles].push(0)
@@ -533,6 +560,9 @@
 				}
 				while(numUpward + 10 < 100){
 					numUpward = numUpward + 10;
+
+					if(this.boardState[numUpward - 10] === 25) break;
+					if(this.boardState[numUpward] === 25) break;
 
 					if(this.boardState[numUpward] === 10 || this.boardState[numUpward] === 11){
 						this[tempTiles].push(0)

@@ -20,6 +20,7 @@
                     3: 'lightblue',
                     10: 'red',
                     11: 'red',
+                    25: 'rgb(24,24,24)',
                     100: 'rgb(251,149,30)',
                 },
                 boardPieceWidthLookUpTable:{
@@ -29,6 +30,7 @@
                     3: this.pieceWidth * 0.95,
                     10: this.pieceWidth * 0.99,
                     11: this.pieceWidth * 0.65,
+                    25: this.pieceWidth * 0.95,
                     100: this.pieceWidth * 0.75,
                 },
 				boardPieceHeightLookUpTable:{
@@ -38,17 +40,29 @@
 					3: this.pieceHeight * 0.95,
 					10: this.pieceHeight * 0.65,
                     11: this.pieceHeight * 0.99,
-                    100: this.pieceWidth * 0.75
+                    100: this.pieceWidth * 0.75,
+					25: this.pieceWidth * 0.95,
 				},
                 boardPieceBorderRadiusLookUpTable:{
-                    0: 0,
+                    0: 5,
                     1: 50,
                     2: 2.5,
                     3: 2.5,
                     10: 0,
                     11: 0,
+                    25: 0,
                     100: 50
                 },
+				boardPieceBorderRadiusLookUpTableOuter:{
+					0: 10,
+					1: 10,
+					2: 10,
+					3: 10,
+					10: 0,
+					11: 0,
+					25: 0,
+					100: 10,
+				},
                 playerStatusText:{
                     'normal': 'N',
                     'charging': 'C',
@@ -70,11 +84,12 @@
 				return {
 					height: this.pieceHeight + 'px',
 					width: this.pieceWidth + 'px',
-					border: '1px dotted #00A45D',
+					border: this.state === 0 ? '1px solid #44036b' : '',
                     backgroundColor: '#501177',
                     display: 'flex',
                     justifyContent: 'center',
                     alignItems: 'center',
+					borderRadius: this.boardPieceBorderRadiusLookUpTableOuter[this.state] + '%',
 				}
 			},
             boardPieceInsideStyle(){
