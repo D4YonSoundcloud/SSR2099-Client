@@ -34,6 +34,7 @@
                     <div class="room-type-container" :style="selectedCharacter === 'D4Y' ? characterSelectedStyle : characterSelectStyle" @click="selectCharacter('D4Y')"> <p>D4Y</p> </div>
                     <div class="room-type-container" :style="selectedCharacter === 'Kabbage' ? characterSelectedStyle : characterSelectStyle" @click="selectCharacter('Kabbage')"> <p>Kabbage</p> </div>
                     <div class="room-type-container" :style="selectedCharacter === 'Goob' ? characterSelectedStyle : characterSelectStyle" @click="selectCharacter('Goob')"> <p>Goob</p> </div>
+                    <div class="room-type-container" :style="selectedCharacter === 'Tathardes' ? characterSelectedStyle : characterSelectStyle" @click="selectCharacter('Tathardes')"> <p>Tathardes</p> </div>
                 </div>
                 <button class="room-button" :style="buttonStyle" v-if="showCharacterSelect" @click="joinMatch()"> JOIN </button>
                 <button class="room-button" :style="buttonStyle" v-if="showCharacterSelect" @click="goToHome()"> CANCEL </button>

@@ -594,6 +594,11 @@
 	            	this.attackPressed = true;
 		            return setTimeout(() => { this.attackPressed = false }, 250)
 	            }
+            },
+            exitWindow(){
+	            this.socket.emit('disconnectFromRoom', this.characterId === this.users[0] ? 1 : 100 )
+	            window.removeEventListener('keydown', this.handleKeyDownEventListener);
+	            window.removeEventListener('keyup', this.handleKeyUpEventListener);
             }
 		},
 		created(){
@@ -601,8 +606,16 @@
             this.joinServer();
             console.log('we are joining the server', this.characterId, this.roomId);
 
+			window.addEventListener('beforeunload', this.exitWindow)
 			window.addEventListener('keydown', this.handleKeyDownListener)
 			window.addEventListener('keyup', this.handleKeyUpListener)
+		},
+		beforeDestroy(){
+			console.log('I am being disconnected dude', this.characterId === this.users[0] ? 1 : 100)
+			this.socket.emit('disconnectFromRoom', this.characterId === this.users[0] ? 1 : 100 )
+            console.log('just sent the emit')
+			window.removeEventListener('keydown', this.handleKeyDownEventListener);
+			window.removeEventListener('keyup', this.handleKeyUpEventListener)
 		}
 	}
 </script>
