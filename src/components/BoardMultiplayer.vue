@@ -8,11 +8,11 @@
                         :enemyIndex="index === enemyIndex ? enemyIndex : undefined" :enemyStatus="enemyStatus"
                         :pieceHeight="boardPieceHeightAndWidth">
             </BoardPiece>
-            <h1 v-if="gameOver === true" style="margin-top: 16px">
+            <h1 v-if="gameOver === true" style="margin-top: 16px; color: white;">
                 <mark style="padding: 4px">Game Over!</mark>
-                {{playerLives < 1 ? playerNames[0] : playerNames[1]}}
+                {{playerLives < 1 ? playerNames[1] : playerNames[0]}}
                 <mark style="padding: 4px">won</mark>,
-                and {{playerLives < 1 ? playerNames[1] : playerNames[0]}}
+                and {{playerLives < 1 ? playerNames[0] : playerNames[1]}}
                 <mark style="padding: 4px">lost</mark>
             </h1>
         </div>
@@ -154,7 +154,7 @@
 					this.users = data.userIDs;
 					this.playerNames = data.users;
 					this.socket.emit('newUser', {id: this.characterId, username: this.playerUserName});
-					console.log('called emit new user', this.users, this.playerNames)
+					console.log('called emit new user', this.users, this.playerNames, data.game)
 				});
 				this.listen();
 			},
@@ -164,9 +164,10 @@
 	            this.socket.on('userOnline', data => {
 		            this.users = data.userIDs;
 		            this.playerNames = data.users;
-		            console.log(this.users, this.playerNames)
+		            console.log(this.users, this.playerNames, data.boardState)
 	            })
 	            this.socket.on('giveUserInformation', data => {
+	                console.log(data.game)
 		            this.assignPlayerInfo(data)
 	            })
 	            this.socket.on('giveGridState', data => {
@@ -607,4 +608,7 @@
 </script>
 
 <style scoped>
+    mark{
+        background-color: orange;
+    }
 </style>

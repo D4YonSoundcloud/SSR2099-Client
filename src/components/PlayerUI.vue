@@ -51,7 +51,7 @@
                 }
             },
             currentColor(){
-                return 'red'
+                return 'white'
             },
             livesAmount(){
             	if(this.multiplayer === true){

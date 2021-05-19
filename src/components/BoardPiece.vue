@@ -14,13 +14,13 @@
 		data(){
 			return{
                 boardPieceColors:{
-					0: 'white',
+					0: '#501177',
                     1: 'black',
                     2: 'orange',
                     3: 'lightblue',
                     10: 'red',
                     11: 'red',
-                    100: 'green',
+                    100: 'rgb(251,149,30)',
                 },
                 boardPieceWidthLookUpTable:{
                     0: this.pieceWidth * 0.95,
@@ -71,7 +71,7 @@
 					height: this.pieceHeight + 'px',
 					width: this.pieceWidth + 'px',
 					border: '1px dotted #00A45D',
-                    backgroundColor: 'white',
+                    backgroundColor: '#501177',
                     display: 'flex',
                     justifyContent: 'center',
                     alignItems: 'center',
@@ -85,7 +85,8 @@
 		            display: 'flex',
 		            justifyContent: 'center',
 		            alignItems: 'center',
-		            borderRadius: this.boardPieceBorderRadiusLookUpTable[this.state] + '%'
+		            borderRadius: this.boardPieceBorderRadiusLookUpTable[this.state] + '%',
+                    boxShadow: '0 0 1px 1px rgba(97, 3, 104, 0.75)',
 	            }
             },
             playerStyle(){
