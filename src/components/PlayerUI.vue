@@ -1,17 +1,13 @@
 <template>
-    <div class="main-ui-container" :style="mainContainerStyle">
+    <div :class="enemy ? 'main-ui-container-right' : 'main-ui-container-left'" :style="mainContainerStyle">
         <h1 v-if="multiplayer === true" :style="titleStyle">{{ playerUsername }}</h1>
         <h1 v-else :style="titleStyle">{{ enemy ? 'Player 2' : 'Player 1'}}</h1>
         <div :style="lifeContainerStyle">
-            <svg v-if="livesAmount >= 1" style="width:24px;height:24px" viewBox="0 0 24 24">
-                <path :fill="currentColor" d="M12.1,18.55L12,18.65L11.89,18.55C7.14,14.24 4,11.39 4,8.5C4,6.5 5.5,5 7.5,5C9.04,5 10.54,6 11.07,7.36H12.93C13.46,6 14.96,5 16.5,5C18.5,5 20,6.5 20,8.5C20,11.39 16.86,14.24 12.1,18.55M16.5,3C14.76,3 13.09,3.81 12,5.08C10.91,3.81 9.24,3 7.5,3C4.42,3 2,5.41 2,8.5C2,12.27 5.4,15.36 10.55,20.03L12,21.35L13.45,20.03C18.6,15.36 22,12.27 22,8.5C22,5.41 19.58,3 16.5,3Z" />
-            </svg>
-            <svg v-if="livesAmount >= 2"  style="width:24px;height:24px" viewBox="0 0 24 24">
-                <path :fill="currentColor" d="M12.1,18.55L12,18.65L11.89,18.55C7.14,14.24 4,11.39 4,8.5C4,6.5 5.5,5 7.5,5C9.04,5 10.54,6 11.07,7.36H12.93C13.46,6 14.96,5 16.5,5C18.5,5 20,6.5 20,8.5C20,11.39 16.86,14.24 12.1,18.55M16.5,3C14.76,3 13.09,3.81 12,5.08C10.91,3.81 9.24,3 7.5,3C4.42,3 2,5.41 2,8.5C2,12.27 5.4,15.36 10.55,20.03L12,21.35L13.45,20.03C18.6,15.36 22,12.27 22,8.5C22,5.41 19.58,3 16.5,3Z" />
-            </svg>
-            <svg v-if="livesAmount === 3"  style="width:24px;height:24px" viewBox="0 0 24 24">
-                <path :fill="currentColor" d="M12.1,18.55L12,18.65L11.89,18.55C7.14,14.24 4,11.39 4,8.5C4,6.5 5.5,5 7.5,5C9.04,5 10.54,6 11.07,7.36H12.93C13.46,6 14.96,5 16.5,5C18.5,5 20,6.5 20,8.5C20,11.39 16.86,14.24 12.1,18.55M16.5,3C14.76,3 13.09,3.81 12,5.08C10.91,3.81 9.24,3 7.5,3C4.42,3 2,5.41 2,8.5C2,12.27 5.4,15.36 10.55,20.03L12,21.35L13.45,20.03C18.6,15.36 22,12.27 22,8.5C22,5.41 19.58,3 16.5,3Z" />
-            </svg>
+            <div class="health-bar-container" :style="healthBarContainerStyle">
+                <h2>{{livesAmount > 0 ? livesAmount.toFixed(2) : 0 }}</h2>
+                <div class="health-bar" :style="healthBarStyle"></div>
+            </div>
+            <h3>{{ enemy ? enemyStatus : playerStatus }}</h3>
         </div>
     </div>
 </template>
@@ -19,20 +15,22 @@
 <script>
     export default {
         name: "PlayerUI",
-        props: ['enemy', 'playerUsername', 'multiplayer', 'enemyLives', 'playerLives'],
+        props: ['enemy', 'playerUsername', 'multiplayer', 'enemyLives', 'playerLives', 'playerStatus', 'enemyStatus'],
         computed:{
-            mainContainerStyle(){
-                return {
-                    width: 150 + 'px',
-                    height: 600 + 'px',
-                    display: 'flex',
-                    flexFlow: 'column',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    marginRight: this.enemy ? 0 : 32 + 'px',
-                    marginLeft: this.enemy ? 32 + 'px' : 0,
-                    color: 'white',
-                }
+            mainContainerStyle() {
+	            return {
+		            width: 300 + 'px',
+		            height: 525 + 'px',
+		            display: 'flex',
+		            flexFlow: 'column',
+		            justifyContent: 'center',
+		            alignItems: 'center',
+		            marginRight: this.enemy ? 0 : 32 + 'px',
+		            marginLeft: this.enemy ? 32 + 'px' : 0,
+		            color: 'white',
+		            transform: 'translateY(-10px)',
+                    borderRadius: '1.25%',
+	            }
             },
             titleStyle(){
                 return {
@@ -45,9 +43,30 @@
                     width: 100 + '%',
                     height: 25 + '%',
                     display: 'flex',
-                    flexFlow: 'row',
+                    flexFlow: 'column',
                     justifyContent: 'center',
                     alignItems: 'center'
+                }
+            },
+            healthBarContainerStyle(){
+	            return {
+		            width: 85 + '%',
+		            height: 50 + '%',
+		            display: 'flex',
+		            flexFlow: 'row',
+		            justifyContent: 'center',
+		            alignItems: 'center'
+	            }
+            },
+            healthBarStyle(){
+                return {
+                	marginLeft: 16 + 'px',
+                	height: 25 + 'px',
+                    backgroundColor: this.healthBarColor,
+                    width: this.livesAmount >= 0 ? ((this.livesAmount/50)*100) + '%' : 0 + '%',
+	                borderBottom: '2px solid #000000',
+	                borderRadius: '5px 2px 5px 2px',
+                    boxShadow: '0 0 30px 1px #3c033c',
                 }
             },
             currentColor(){
@@ -59,7 +78,16 @@
                 } else {
                     return this.enemy ? this.$store.state.enemyLivesStore : this.$store.state.playerLivesStore
                 }
-            }
+            },
+            healthBarColor(){
+                if(this.livesAmount <= 50 && this.livesAmount >= 35) {
+                	return '#129e12'
+                } else if (this.livesAmount <= 34.99 && this.livesAmount >= 20) {
+                	return 'yellow'
+                } else {
+                	return 'red'
+                }
+            },
         },
         watch:{
           livesAmount(){
@@ -73,5 +101,30 @@
 </script>
 
 <style scoped>
+    .main-ui-container-left {
+        background: linear-gradient(320deg, #8a18d0, #bd3ce7, #550a6d, #9248a5);
+        background-size: 400% 400%;
+        animation: gradient 10s ease infinite;
+    }
+    .main-ui-container-right{
+        background: linear-gradient(135deg, #8a18d0, #bd3ce7, #550a6d, #9248a5);
+        background-size: 400% 400%;
+        animation: gradient 10s ease infinite;
+    }
 
+    @keyframes gradient {
+        0% {
+            background-position: 0 50%;
+        }
+        25% {
+            background-position: 100% 50%;
+        }
+        75% {
+            background-position: 50% 100%;
+        }
+        100%
+        {
+             background-position: 0 50%;
+        }
+    }
 </style>

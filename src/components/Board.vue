@@ -1,6 +1,6 @@
 <template>
     <div class="board-container" :style="boardContainerStyle">
-        <PlayerUI :enemy="false" :multiplayer="false"></PlayerUI>
+        <PlayerUI :enemy="false" :multiplayer="false" :playerStatus="playerStatus"></PlayerUI>
         <div class="board" :style="boardStyle">
             <BoardPiece :pieceIndex="index"  v-for="(piece, index) in boardState" :key="index"
                         :state="piece" :playerIndex="index === playerIndex ? playerIndex : undefined"
@@ -9,14 +9,14 @@
                         :pieceHeight="boardPieceHeightAndWidth">
             </BoardPiece>
             <h1 v-if="gameOver === true" style="margin-top: 16px">
-                <mark style="padding: 4px">Game Over!</mark>
+                Game Over!
                 {{playerLivesStore < 1 ? 'Player 2' : 'Player 1'}}
                 <mark style="padding: 4px">won</mark>,
                 and {{playerLivesStore < 1 ? 'Player 1' : 'Player 2' }}
                 <mark style="padding: 4px">lost</mark>
             </h1>
         </div>
-        <PlayerUI :enemy="true" :multiplayer="false"></PlayerUI>
+        <PlayerUI :enemy="true" :multiplayer="false" :enemyStatus="enemyStatus"></PlayerUI>
     </div>
 </template>
 
@@ -25,6 +25,7 @@
     import Vue from 'vue'
     import BoardPiece from "./BoardPiece";
     import PlayerUI from "./PlayerUI";
+    import * as d3 from 'd3-scale'
 	export default {
 		name: "Board",
         components:{BoardPiece, PlayerUI},
@@ -51,11 +52,17 @@
                 playerStatus: 'normal',
                 playerAttackTiles:[],
 				playerAttackTempTilesState:[],
+                playerChargeTimeStart: 0,
+                playerChargeTimeEnd: 0,
+                playerAttackDamage: 0,
                 enemyIndex: 99,
                 enemyState: 100,
 				enemyStatus: 'normal',
 				enemyAttackTiles:[],
 				enemyAttackTempTilesState:[],
+				enemyChargeTimeStart: 0,
+				enemyChargeTimeEnd: 0,
+                enemyAttackDamage: 0,
 				boardWidth: 500,
                 boardHeight: 500,
                 keyCodes:{
@@ -89,6 +96,7 @@
                     'fire': 'dry',
                     'dry': 'wet',
                 },
+                chargeScale: d3.scaleLinear().domain([50,1000]).range([5,20]).clamp(true),
             }
         },
         computed:{
@@ -103,7 +111,9 @@
                     display: 'flex',
                     justifyContent: 'center',
                     alignContent: 'center',
-                    backgroundColor: 'rgb(38, 3, 60)',
+                    backgroundColor: 'rgb(14 1 27)',
+                    minWidth: 1175 + 'px',
+                    color: 'white',
                 }
             },
             boardStyle(){
@@ -137,8 +147,25 @@
         },
         methods:{
 		    handleKeyDownEvent(e) {
-		    	if(this.playerStatus === 'attacking' || this.playerStatus === 'charging') return console.log('you are on cooldown!')
-		    	if(this.enemyStatus === 'attacking' || this.enemyStatus === 'charging') return console.log('you are on cooldown!')
+		    	if(this.playerStatus === 'attacking' || this.playerStatus === 'charging') {
+
+				    this.playerChargeTimeEnd = e.timeStamp;
+				    let difference = this.playerChargeTimeEnd - this.playerChargeTimeStart
+                    this.playerAttackDamage = this.chargeScale(difference);
+				    console.log(this.playerChargeTimeStart, this.playerChargeTimeEnd, difference, this.chargeScale(difference))
+
+				    return this.handleAttack(e, false, this.playerAttackDamage);
+
+                }
+		    	if(this.enemyStatus === 'attacking' || this.enemyStatus === 'charging') {
+
+				    this.enemyChargeTimeEnd = e.timeStamp;
+				    let difference = this.enemyChargeTimeEnd - this.enemyChargeTimeStart
+                    this.enemyAttackDamage = this.chargeScale(difference);
+				    console.log(this.enemyChargeTimeStart, this.enemyChargeTimeEnd, difference, this.chargeScale(difference))
+
+				    return this.handleAttack(e, true, this.enemyAttackDamage);
+			    }
 
 		    	if(this.keyCodes[e.keyCode] === 'right') {
 		    		console.log('right')
@@ -154,25 +181,24 @@
 				    return this.handleDownKey(this.playerKeyCodes.includes(e.keyCode) ? this.playerIndex : this.enemyIndex, e.keyCode)
 			    }
 		    },
-            handleAttack(e, enemy){
+            handleAttack(e, enemy, damageAmount){
 		    	console.log('this is an enemy attacking', enemy)
 	            if(this.playerStatus === 'attacking' && enemy === false) return console.log('you are already attacking')
 	            if(this.enemyStatus === 'attacking' && enemy === true) return console.log('you are already attacking')
 
 		        if(this.keyCodes[e.keyCode] === 'right' || this.keyCodes[e.keyCode] === 'left') {
-		        	return this.handleHorizontalAttack(enemy ? this.enemyIndex : this.playerIndex, enemy)
+		        	return this.handleHorizontalAttack(enemy ? this.enemyIndex : this.playerIndex, enemy, damageAmount)
                 } else if (this.keyCodes[e.keyCode] === 'up' || this.keyCodes[e.keyCode] === 'down') {
-		        	return this.handleVerticalAttack(enemy ? this.enemyIndex : this.playerIndex, enemy);
+		        	return this.handleVerticalAttack(enemy ? this.enemyIndex : this.playerIndex, enemy, damageAmount);
                 }
             },
-            handleHorizontalAttack(currentPlayerIndex, enemy){
+            handleHorizontalAttack(currentPlayerIndex, enemy, damageAmount){
 		    	let numToSubtract = currentPlayerIndex % 10
                 let numToAdd = this.rowCount - numToSubtract
 
                 enemy ? this.enemyStatus = 'attacking' : this.playerStatus = 'attacking';
 
-		    	this.findAttackTiles(numToSubtract, numToAdd, currentPlayerIndex, enemy).then(() => {
-				    console.log(performance.now());
+		    	this.findAttackTiles(numToSubtract, numToAdd, currentPlayerIndex, enemy, damageAmount).then(() => {
 		    		this.assignAttackTiles('horizontal',enemy).then(() => {
 		    			console.log('attack is on cooldown', performance.now())
 					    this.attackCoolDown(enemy);
@@ -181,13 +207,13 @@
 		    	    console.log('this is a horizontal attack', numToSubtract, numToAdd, this.playerIndex)
                 });
             },
-            handleVerticalAttack(currentPlayerIndex, enemy){
+            handleVerticalAttack(currentPlayerIndex, enemy, damageAmount){
 	            let trackingNumDownward = currentPlayerIndex - 10;
 	            let trackingNumUpward = currentPlayerIndex + 10;
 
 	            enemy ? this.enemyStatus = 'attacking' : this.playerStatus = 'attacking';
 
-	            this.findAttackTilesVertical(trackingNumDownward, trackingNumUpward, enemy).then(() => {
+	            this.findAttackTilesVertical(trackingNumDownward, trackingNumUpward, enemy, damageAmount).then(() => {
                     this.assignAttackTiles('vertical', enemy).then(() => {
 	                    this.attackCoolDown(enemy)
                     })
@@ -339,7 +365,7 @@
                     })
                 }, 250)
             },
-            async findAttackTiles(numToSubtract, numToAdd, currentPlayerIndex, enemy){
+            async findAttackTiles(numToSubtract, numToAdd, currentPlayerIndex, enemy, damageAmount){
 		    	let subtractTileIndex = currentPlayerIndex
                 let addTileIndex = currentPlayerIndex - 1;
 		    	let tempTiles = enemy ? 'enemyAttackTempTilesState' : 'playerAttackTempTilesState'
@@ -355,7 +381,7 @@
 		    			if(this.boardState[subtractTileIndex === 10] || this.boardState[subtractTileIndex] === 11){
 						    this[tempTiles].push(0)
                         } else if (this.boardState[subtractTileIndex] === 1 || this.boardState[subtractTileIndex] === 100) {
-                            this.handleLivesAmount(livesAmountDispatchString, livesAmountString)
+                            this.handleLivesAmount(livesAmountDispatchString, livesAmountString, damageAmount)
                             continue;
                         } else {
 						    this[tempTiles].push(this.boardState[subtractTileIndex])
@@ -371,7 +397,7 @@
 					    if(this.boardState[addTileIndex] === 10 || this.boardState[addTileIndex] === 11){
 						    this[tempTiles].push(0)
 					    } else if (this.boardState[addTileIndex] === 1 || this.boardState[addTileIndex] === 100) {
-                            this.handleLivesAmount(livesAmountDispatchString, livesAmountString)
+                            this.handleLivesAmount(livesAmountDispatchString, livesAmountString, damageAmount)
                             continue;
                         } else {
 						    this[tempTiles].push(this.boardState[addTileIndex])
@@ -380,7 +406,7 @@
                     }
                 }
             },
-            async findAttackTilesVertical(numDownward, numUpward, enemy){
+            async findAttackTilesVertical(numDownward, numUpward, enemy, damageAmount){
 	            let tempTiles = enemy ? 'enemyAttackTempTilesState' : 'playerAttackTempTilesState'
 	            let attackTiles = enemy ? 'enemyAttackTiles' : 'playerAttackTiles'
                 let livesAmountDispatchString = enemy ? 'getChangePlayerLives' : 'getChangeEnemyLives'
@@ -393,7 +419,7 @@
 					    this[tempTiles].push(0)
                         this[attackTiles].push(numDownward);
 				    } else if (this.boardState[numDownward] === 1 || this.boardState[numDownward] === 100) {
-                        this.handleLivesAmount(livesAmountDispatchString, livesAmountString)
+                        this.handleLivesAmount(livesAmountDispatchString, livesAmountString, damageAmount)
                     } else {
 					    this[tempTiles].push(this.boardState[numDownward])
                         this[attackTiles].push(numDownward);
@@ -406,7 +432,7 @@
                         this[attackTiles].push(numUpward)
 					    this[tempTiles].push(0)
 				    } else if (this.boardState[numUpward] === 1 || this.boardState[numUpward] === 100) {
-                        this.handleLivesAmount(livesAmountDispatchString, livesAmountString)
+                        this.handleLivesAmount(livesAmountDispatchString, livesAmountString, damageAmount)
                     } else {
 					    this[tempTiles].push(this.boardState[numUpward])
                         this[attackTiles].push(numUpward)
@@ -422,7 +448,7 @@
 	                if(this.boardState[numDownward] === 10 || this.boardState[numDownward] === 11){
 		                this[tempTiles].push(0)
 	                } else if (this.boardState[numDownward] === 1 || this.boardState[numDownward] === 100) {
-                        this.handleLivesAmount(livesAmountDispatchString, livesAmountString)
+                        this.handleLivesAmount(livesAmountDispatchString, livesAmountString, damageAmount)
                         continue;
                     } else {
 		                this[tempTiles].push(this.boardState[numDownward])
@@ -439,7 +465,7 @@
 	                if(this.boardState[numUpward] === 10 || this.boardState[numUpward] === 11){
 		                this[tempTiles].push(0)
 	                } else if (this.boardState[numUpward] === 1 || this.boardState[numUpward] === 100) {
-                        this.handleLivesAmount(livesAmountDispatchString, livesAmountString)
+                        this.handleLivesAmount(livesAmountDispatchString, livesAmountString, damageAmount)
                         continue;
                     } else {
 		                this[tempTiles].push(this.boardState[numUpward])
@@ -458,24 +484,36 @@
             async resetAttackTiles(enemy){
 	            let tempTiles = enemy ? 'enemyAttackTempTilesState' : 'playerAttackTempTilesState'
 	            let attackTiles = enemy ? 'enemyAttackTiles' : 'playerAttackTiles'
+                let damageAmount = enemy ? 'enemyAttackDamage' : 'playerAttackDamage'
 
 	            this[attackTiles].forEach((value, index) => {
 	            	console.log(value, index, this[tempTiles][index])
                     Vue.set(this.boardState, value, this[tempTiles][index])
 	            })
+
+                this[damageAmount] = 0;
+
+	            console.log(this[damageAmount])
             },
-            handleLivesAmount(livesAmountDispatchString, livesAmountString){
-		        this.$store.dispatch(livesAmountDispatchString, this[livesAmountString] - 1)
+            handleLivesAmount(livesAmountDispatchString, livesAmountString, damageAmount){
+		    	console.log(damageAmount);
+		        this.$store.dispatch(livesAmountDispatchString, this[livesAmountString] - damageAmount)
             },
             handleKeyDownEventListener(e){
 	            if(this.gameOver === true) return
-	            if(e.key === 'f' || e.key === 'v') return this.playerStatus = 'charging'
-	            if(e.key === '0') return this.enemyStatus = 'charging'
+	            if(e.key === 'f' || e.key === 'v') {
+	            	this.playerChargeTimeStart = e.timeStamp;
+	            	return this.playerStatus = 'charging'
+	            }
+	            if(e.key === '0') {
+		            this.enemyChargeTimeStart = e.timeStamp;
+	            	return this.enemyStatus = 'charging'
+	            }
 	            return this.handleKeyDownEvent(e);
             },
             handleKeyUpEventListener(e){
 	            if(this.gameOver === true) return
-	            if(this.playerStatus === 'charging') {
+	            if(this.playerStatus === 'charging' && e.key !== 'f' && e.key !== 'v') {
 		            return this.handleAttack(e, false);
 	            } else if (this.enemyStatus === 'charging'){
 		            return this.handleAttack(e, true)
@@ -487,7 +525,7 @@
 			this.boardState[this.enemyIndex] = this.enemyState
 
             window.addEventListener('keydown', this.handleKeyDownEventListener)
-            window.addEventListener('keyup', this.handleKeyUpEventListener)
+            // window.addEventListener('keyup', this.handleKeyUpEventListener)
         },
         beforeDestroy(){
 			console.log('removing the event listeners')

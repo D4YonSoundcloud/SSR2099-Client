@@ -112,14 +112,9 @@
                 }
             }
 		},
-        watch:{
-		    state(){
-		    	console.log(this.state, this.pieceIndex)
-            }
-        },
-		created(){
-			console.log(this.state, this.pieceIndex, this.pieceWidth, this.pieceHeight)
-		}
+		// created(){
+		// 	console.log(this.state, this.pieceIndex, this.pieceWidth, this.pieceHeight)
+		// }
 	}
 </script>
 

@@ -5,8 +5,8 @@ Vue.use(Vuex)
 
 export default new Vuex.Store({
   state: {
-    playerLivesStore: 3,
-    enemyLivesStore: 3,
+    playerLivesStore: 50,
+    enemyLivesStore: 50,
   },
   mutations: {
     CHANGE_ENEMY_LIVES(state,payload){
