@@ -105,13 +105,12 @@
             },
             boardContainerStyle(){
 				return {
-					paddingTop: 5 + '%',
+					paddingTop: 2.5 + '%',
 					height: 100 + 'vh',
                     width: 100 + 'vw',
                     display: 'flex',
                     justifyContent: 'center',
                     alignContent: 'center',
-                    backgroundColor: 'rgb(14 1 27)',
                     minWidth: 1175 + 'px',
                     color: 'white',
                 }
@@ -123,7 +122,7 @@
                     display: 'flex',
                     flexFlow: 'row wrap',
                     backgroundColor: '#3e0761',
-					boxShadow: '0 0 20px 1px #151415',
+					boxShadow: 'rgb(90 5 90) 0px 0px 100px 0',
                 }
             },
             playerLivesStore(){
@@ -536,4 +535,31 @@
 </script>
 
 <style scoped>
+    .board-container{
+        background: linear-gradient(181deg, #2d0446, #3e124c, #32153c, #000000);
+        background-size: 400% 400%;
+        animation: gradient 30s ease infinite;
+    }
+
+    .board{
+        background: linear-gradient(181deg, #2d0446, #3e124c, #32153c, #000000);
+        background-size: 400% 400%;
+        animation: gradient 10s ease infinite;
+    }
+
+    @keyframes gradient {
+        0% {
+            background-position: 0 50%;
+        }
+        25% {
+            background-position: 100% 50%;
+        }
+        75% {
+            background-position: 50% 100%;
+        }
+        100%
+        {
+            background-position: 0 50%;
+        }
+    }
 </style>

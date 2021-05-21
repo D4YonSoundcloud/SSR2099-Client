@@ -1,21 +1,26 @@
 <template>
     <div class="board-piece" :style="boardPieceStyle">
         <div class="board-piece-inside" :style="boardPieceInsideStyle">
-            <p v-if="playerIndex !== undefined" :style="playerStyle"> {{playerStatusText[playerStatus]}} </p>
-            <p v-if="enemyIndex !== undefined" :style="playerStyle"> {{playerStatusText[enemyStatus]}} </p>
+<!--            <p v-if="playerIndex !== undefined" :style="playerStyle"> {{playerStatusText[playerStatus]}} </p>-->
+<!--            <p v-if="enemyIndex !== undefined" :style="playerStyle"> {{playerStatusText[enemyStatus]}} </p>-->
+        </div>
+        <div class="board-piece-eyes" :style="boardPieceEyesStyle">
         </div>
     </div>
 </template>
 
 <script>
+
+
 	export default {
 		name: "BoardPiece",
-        props:['state','pieceIndex','pieceWidth','pieceHeight', 'playerIndex', 'playerStatus', 'enemyIndex', 'enemyStatus'],
+        props:['state','pieceIndex','pieceWidth','pieceHeight', 'playerIndex', 'playerStatus',
+            'enemyIndex', 'enemyStatus', 'playerUserName', 'enemyUserName', 'buttonPressed'],
 		data(){
 			return{
                 boardPieceColors:{
 					0: '#501177',
-                    1: 'black',
+                    1: 'rgba(0,0,0,0)',
                     2: 'orange',
                     3: 'lightblue',
                     10: 'red',
@@ -25,7 +30,7 @@
                 },
                 boardPieceWidthLookUpTable:{
                     0: this.pieceWidth * 0.95,
-                    1: this.pieceWidth * 0.75,
+                    1: this.pieceWidth * 1,
                     2: this.pieceWidth * 0.95,
                     3: this.pieceWidth * 0.95,
                     10: this.pieceWidth * 0.99,
@@ -35,7 +40,7 @@
                 },
 				boardPieceHeightLookUpTable:{
 					0: this.pieceHeight * 0.95,
-					1: this.pieceHeight * 0.75,
+					1: this.pieceHeight * 1,
 					2: this.pieceHeight * 0.95,
 					3: this.pieceHeight * 0.95,
 					10: this.pieceHeight * 0.65,
@@ -45,7 +50,7 @@
 				},
                 boardPieceBorderRadiusLookUpTable:{
                     0: 5,
-                    1: 50,
+                    1: 2.5,
                     2: 2.5,
                     3: 2.5,
                     10: 0,
@@ -63,6 +68,18 @@
 					25: 0,
 					100: 10,
 				},
+                playerSprite:{
+                    'D4Y': `url(${require('../assets/D4Y-idle-sprite.png')})`
+                },
+                playerEyesSprite:{
+                    'D4Y': `url(${require('../assets/D4Y-eyes-sprite.png')})`
+                },
+                playerSpriteTransform:{
+                    'right': 'translateX(-5px) rotateZ(270deg)',
+                    'down': 'translateY(-2px) rotateZ(0deg)',
+                    'left': 'translateX(3px) rotateZ(90deg)',
+                    'up': 'translateY(5px) rotateZ(180deg)'
+                },
                 playerStatusText:{
                     'normal': 'N',
                     'charging': 'C',
@@ -101,14 +118,48 @@
 		            justifyContent: 'center',
 		            alignItems: 'center',
 		            borderRadius: this.boardPieceBorderRadiusLookUpTable[this.state] + '%',
-                    boxShadow: '0 0 1px 1px rgba(97, 3, 104, 0.75)',
+                    boxShadow: this.boxShadow,
+                    backgroundImage: this.playerSprite[this.username],
+                    transform: this.transform,
+                    transformOrigin: 'center',
 	            }
+            },
+            boardPieceEyesStyle(){
+                return {
+                    height: this.boardPieceHeightLookUpTable[this.state] + 'px',
+                    width: this.boardPieceWidthLookUpTable[this.state] + 'px',
+                    position: 'absolute',
+                    backgroundImage: this.playerEyesSprite[this.username],
+                }
             },
             playerStyle(){
 				return {
 					color: 'white',
                     width: this.playerTextWidth + '%',
                     height: this.playerTextHeight + '%',
+                }
+            },
+            username(){
+			    if(this.playerUserName !== undefined) {
+			        return this.playerUserName
+                } else if (this.enemyUserName !== undefined) {
+			        return this.enemyUserName
+                }
+            },
+            boxShadow(){
+			    if(this.state === 1 || this.state === 100) {
+			        return ''
+                } else {
+			        return '0 0 1px 1px rgba(97, 3, 104, 0.75)'
+                }
+            },
+            transform(){
+			    if(this.state === 1 || this.playerUserName !== undefined) {
+			        return this.playerSpriteTransform[this.buttonPressed]
+                } else if ( this.state === 100 || this.enemyUserName !== undefined) {
+                    return this.playerSpriteTransform[this.buttonPressed]
+                } else {
+			        return ''
                 }
             }
 		},
@@ -119,5 +170,4 @@
 </script>
 
 <style scoped>
-
 </style>

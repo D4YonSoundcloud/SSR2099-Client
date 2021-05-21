@@ -4,6 +4,9 @@
         <div class="board" :style="boardStyle">
             <BoardPiece :pieceIndex="index"  v-for="(piece, index) in boardState" :key="index"
                         :state="piece" :playerIndex="index === playerIndex ? playerIndex : undefined"
+                        :playerUserName="index === playerIndex ? playerNames[0] : undefined "
+                        :buttonPressed="buttonPressed"
+                        :enemyUserName="index === enemyIndex ? playerNames[1] : undefined "
                         :pieceWidth="boardPieceHeightAndWidth" :playerStatus="index === playerIndex ? playerStatus : 'normal'"
                         :enemyIndex="index === enemyIndex ? enemyIndex : undefined" :enemyStatus="enemyStatus"
                         :pieceHeight="boardPieceHeightAndWidth">
@@ -26,6 +29,7 @@
 	import Vue from 'vue'
 	import BoardPiece from "./BoardPiece";
 	import PlayerUI from "./PlayerUI";
+    import * as d3 from "d3-scale";
 	export default {
 		name: "BoardMultiplayer",
 		components:{BoardPiece, PlayerUI},
@@ -53,11 +57,17 @@
 				playerStatus: 'normal',
 				playerAttackTiles:[],
 				playerAttackTempTilesState:[],
+                playerChargeTimeStart: 0,
+                playerChargeTimeEnd: 0,
+                playerAttackDamage: 0,
 				enemyIndex: 99,
 				enemyState: 100,
 				enemyStatus: 'normal',
 				enemyAttackTiles:[],
 				enemyAttackTempTilesState:[],
+                enemyChargeTimeStart: 0,
+                enemyChargeTimeEnd: 0,
+                enemyAttackDamage: 0,
 				boardWidth: 500,
 				boardHeight: 500,
 				keyCodes:{
@@ -100,8 +110,10 @@
 				users:[],
                 playerNames: [],
                 attackPressed: false,
-                playerLives: 3,
-                enemyLives: 3,
+                playerLives: 50,
+                enemyLives: 50,
+                buttonPressed: '',
+                chargeScale: d3.scaleLinear().domain([50,1000]).range([5,20]).clamp(true),
 			}
 		},
 		computed:{
@@ -110,7 +122,7 @@
 			},
 			boardContainerStyle(){
 				return {
-					paddingTop: 5 + '%',
+					paddingTop: 2.5 + '%',
 					height: 100 + '%',
 					width: 100 + 'vw',
 					display: 'flex',
@@ -125,7 +137,7 @@
 					display: 'flex',
 					flexFlow: 'row wrap',
 					backgroundColor: '#3e0761',
-					boxShadow: '0 0 20px 1px #151415',
+					boxShadow: 'rgb(90 5 90) 0px 0px 100px 0',
 				}
 			},
 			playerLivesStore(){
@@ -137,12 +149,12 @@
 		},
 		watch:{
 			playerLives(){
-				if(this.playerLives < 1){
+				if(this.playerLives <= 0){
 					return this.gameOver = true;
 				}
 			},
 			enemyLives(){
-				if(this.enemyLives < 1){
+				if(this.enemyLives <= 0){
 					return this.gameOver = true;
 				}
 			}
@@ -221,9 +233,25 @@
             },
 			handleKeyDownEvent(e) {
 				if(this.characterId === this.users[0]){
-					if(this.playerStatus === 'charging' || this.playerStatus === 'attacking') return console.log('you cant move');
+					if(this.playerStatus === 'charging' || this.playerStatus === 'attacking') {
+
+                        this.playerChargeTimeEnd = e.timeStamp;
+                        let difference = this.playerChargeTimeEnd - this.playerChargeTimeStart
+                        this.playerAttackDamage = this.chargeScale(difference);
+                        console.log(this.playerChargeTimeStart, this.playerChargeTimeEnd, difference, this.chargeScale(difference))
+
+					    return this.handleAttack(e, false, this.playerAttackDamage)
+                    }
                 } else if (this.characterId === this.users[1]){
-					if(this.enemyStatus === 'charging' || this.enemyStatus === 'attacking') return console.log('you cant move');
+					if(this.enemyStatus === 'charging' || this.enemyStatus === 'attacking') {
+
+                        this.enemyChargeTimeEnd = e.timeStamp;
+                        let difference = this.enemyChargeTimeEnd - this.enemyChargeTimeStart
+                        this.enemyAttackDamage = this.chargeScale(difference);
+                        console.log(this.enemyChargeTimeStart, this.enemyChargeTimeEnd, difference, this.chargeScale(difference))
+
+					    return this.handleAttack(e, true, this.enemyAttackDamage)
+                    }
                 }
 
 				let indexString = this.characterId === this.users[0] ? 'playerIndex' : 'enemyIndex'
@@ -231,29 +259,33 @@
 
 				if(this.keyCodes[e.keyCode] === 'right') {
 					console.log('right')
+                    this.buttonPressed = 'right';
 					return this.handleRightKey(this[indexString], indexString)
 				} else if(this.keyCodes[e.keyCode] === 'left') {
 					console.log('left')
+                    this.buttonPressed = 'left';
 					return this.handleLeftKey(this[indexString], indexString)
 				} else if(this.keyCodes[e.keyCode] === 'up') {
 					console.log('up')
+                    this.buttonPressed = 'up';
 					return this.handleUpKey(this[indexString], indexString)
 				} else if(this.keyCodes[e.keyCode] === 'down') {
 					console.log('down')
+                    this.buttonPressed = 'down';
 					return this.handleDownKey(this[indexString], indexString)
 				}
 			},
-			handleAttack(e, enemy){
+			handleAttack(e, enemy, damageAmount){
 				if(this.playerStatus === 'attacking' && enemy === false) return console.log('you are already attacking')
 				if(this.enemyStatus === 'attacking' && enemy === true) return console.log('you are already attacking')
 
 				if(this.keyCodes[e.keyCode] === 'right' || this.keyCodes[e.keyCode] === 'left') {
-					return this.handleHorizontalAttack(enemy ? this.enemyIndex : this.playerIndex, enemy)
+					return this.handleHorizontalAttack(enemy ? this.enemyIndex : this.playerIndex, enemy, damageAmount)
 				} else if (this.keyCodes[e.keyCode] === 'up' || this.keyCodes[e.keyCode] === 'down') {
-					return this.handleVerticalAttack(enemy ? this.enemyIndex : this.playerIndex, enemy);
+					return this.handleVerticalAttack(enemy ? this.enemyIndex : this.playerIndex, enemy, damageAmount);
 				}
 			},
-			handleHorizontalAttack(currentPlayerIndex, enemy){
+			handleHorizontalAttack(currentPlayerIndex, enemy, damageAmount){
 				let numToSubtract = currentPlayerIndex % 10
 				let numToAdd = this.rowCount - numToSubtract
 
@@ -263,7 +295,7 @@
 					this.socket.emit('sendChangePlayerStatus', {player: 1, status: 'attacking', index: this.playerIndex})
                 }
 
-				this.findAttackTiles(numToSubtract, numToAdd, currentPlayerIndex, enemy).then(() => {
+				this.findAttackTiles(numToSubtract, numToAdd, currentPlayerIndex, enemy, damageAmount).then(() => {
 					this.assignAttackTiles('horizontal',enemy).then(() => {
 						if(this.characterId === this.users[0]){
 							this.socket.emit('sendPlayerAttack', {player: 1, boardState: this.boardState})
@@ -276,7 +308,7 @@
 					console.log('this is a horizontal attack')
 				});
 			},
-			handleVerticalAttack(currentPlayerIndex, enemy){
+			handleVerticalAttack(currentPlayerIndex, enemy, damageAmount){
 				let trackingNumDownward = currentPlayerIndex - 10;
 				let trackingNumUpward = currentPlayerIndex + 10;
 
@@ -286,7 +318,7 @@
 					this.socket.emit('sendChangePlayerStatus', {player: 1, status: 'attacking', index: this.playerIndex})
 				}
 
-				this.findAttackTilesVertical(trackingNumDownward, trackingNumUpward, enemy).then(() => {
+				this.findAttackTilesVertical(trackingNumDownward, trackingNumUpward, enemy, damageAmount).then(() => {
 					this.assignAttackTiles('vertical', enemy).then(() => {
 						if(this.characterId === this.users[0]){
 							this.socket.emit('sendPlayerAttack', {player: 1, boardState: this.boardState})
@@ -302,11 +334,12 @@
 			handleRightKey(currentIndex, indexString){
                 console.log(currentIndex, indexString, this[indexString])
 				if ((currentIndex + 1)%this.columnCount === 0) {
-					if(this.boardState[currentIndex + 1] === 25) return console.log('this is a wall')
-
+					if(this.boardState[currentIndex - (this.columnCount - 1)] === 25 ) return console.log('this is a wall')
+                    if(this.boardState[currentIndex - (this.columnCount - 1)] === 1 || this.boardState[currentIndex - (this.columnCount - 1)] === 100) return
 					this.swap(currentIndex - (this.columnCount - 1), this[indexString] - (this.columnCount - 1),'rightWall', indexString)
 				} else {
 					if(this.boardState[currentIndex + 1] === 25) return console.log('this is a wall')
+					if(this.boardState[currentIndex + 1] === 1 || this.boardState[currentIndex + 1] === 100) return console.log('this is a wall')
 
 					this.swap(currentIndex + 1, this[indexString] + 1,'right', indexString)
 				}
@@ -314,9 +347,12 @@
 			handleLeftKey(currentIndex, indexString){
 				if ((currentIndex + 1)%this.columnCount === 1) {
 					if(this.boardState[currentIndex - 1] === 25) return console.log('this is a wall')
+                    if(this.boardState[currentIndex + (this.columnCount - 1)] === 1 || this.boardState[currentIndex + (this.columnCount - 1)] === 100) return
 					this.swap(currentIndex + (this.columnCount - 1), this[indexString] + (this.columnCount - 1),'leftWall', indexString)
 				} else {
 					if(this.boardState[currentIndex - 1] === 25) return console.log('this is a wall')
+					if(this.boardState[currentIndex - 1] === 1 || this.boardState[currentIndex - 1] === 100) return console.log('this is a wall')
+
 					this.swap(currentIndex - 1, this[indexString] - 1, 'left', indexString)
 				}
 			},
@@ -331,6 +367,7 @@
 					let temp = this.boardState[lastRowStart + currentIndex]
 
 					if(temp === 25) return console.log('there is a wall here')
+                    if(temp === 100 || temp === 1) return console.log('there is a player here')
 
 					if(this.characterId === this.users[0]){
 						this.playerIndex = lastRowStart + currentIndex;
@@ -352,6 +389,7 @@
 					})
 				} else {
 					if(this.boardState[playerIndex - this.columnCount] === 25) return console.log('you are hitting a wall dude')
+                    if(this.boardState[playerIndex - this.columnCount] === 1 || this.boardState[playerIndex - this.columnCount] === 100) return console.log('you are hitting a wall dude')
 
 					this.swap(currentIndex - this.columnCount, this[indexString] - this.columnCount, 'up', indexString)
 				}
@@ -368,6 +406,7 @@
 					playerIndex = difference;
 
 					if(temp === 25) return console.log('there is a wall here')
+                    if(temp === 100 || temp === 1) return console.log('there is a player here')
 
 					if(this.characterId === this.users[0]){
 						this.playerIndex = playerIndex;
@@ -386,6 +425,7 @@
 					})
 				} else {
 					if(this.boardState[playerIndex + this.columnCount] === 25) return console.log('you are hitting a wall bro')
+					if(this.boardState[playerIndex + this.columnCount] === 1 || this.boardState[playerIndex + this.columnCount] === 100) return console.log('you are hitting a wall bro')
 
 					this.swap(currentIndex + this.columnCount, playerIndex + this.columnCount, 'down', indexString)
 				}
@@ -469,7 +509,7 @@
 					})
 				}, 250)
 			},
-			async findAttackTiles(numToSubtract, numToAdd, currentPlayerIndex, enemy){
+			async findAttackTiles(numToSubtract, numToAdd, currentPlayerIndex, enemy, damageAmount){
 				let subtractTileIndex = currentPlayerIndex
 				let addTileIndex = currentPlayerIndex - 1;
 				let tempTiles = enemy ? 'enemyAttackTempTilesState' : 'playerAttackTempTilesState'
@@ -484,7 +524,7 @@
 						if(this.boardState[subtractTileIndex === 10] || this.boardState[subtractTileIndex] === 11){
 							this[tempTiles].push(0)
 						} else if (this.boardState[subtractTileIndex] === 1 || this.boardState[subtractTileIndex] === 100) {
-							this.handleLivesAmount(enemy, livesAmountString)
+							this.handleLivesAmount(enemy, livesAmountString, damageAmount)
 							continue;
 						} else {
 							this[tempTiles].push(this.boardState[subtractTileIndex])
@@ -500,7 +540,7 @@
 						if(this.boardState[addTileIndex] === 10 || this.boardState[addTileIndex] === 11){
 							this[tempTiles].push(0)
 						} else if (this.boardState[addTileIndex] === 1 || this.boardState[addTileIndex] === 100) {
-							this.handleLivesAmount(enemy, livesAmountString)
+							this.handleLivesAmount(enemy, livesAmountString, damageAmount)
 							continue;
 						} else {
 							this[tempTiles].push(this.boardState[addTileIndex])
@@ -509,7 +549,7 @@
 					}
 				}
 			},
-			async findAttackTilesVertical(numDownward, numUpward, enemy){
+			async findAttackTilesVertical(numDownward, numUpward, enemy, damageAmount){
 				let tempTiles = enemy ? 'enemyAttackTempTilesState' : 'playerAttackTempTilesState'
 				let attackTiles = enemy ? 'enemyAttackTiles' : 'playerAttackTiles'
 				let livesAmountString = enemy ? 'playerLives' : 'enemyLives'
@@ -521,7 +561,7 @@
 						this[tempTiles].push(0)
 						this[attackTiles].push(numDownward);
 					} else if (this.boardState[numDownward] === 1 || this.boardState[numDownward] === 100) {
-						this.handleLivesAmount(enemy, livesAmountString)
+                        this.handleLivesAmount(enemy, livesAmountString, damageAmount)
 					} else {
 						this[tempTiles].push(this.boardState[numDownward])
 						this[attackTiles].push(numDownward);
@@ -534,7 +574,7 @@
 						this[attackTiles].push(numUpward)
 						this[tempTiles].push(0)
 					} else if (this.boardState[numUpward] === 1 || this.boardState[numUpward] === 100) {
-						this.handleLivesAmount(enemy, livesAmountString)
+                        this.handleLivesAmount(enemy, livesAmountString, damageAmount)
 					} else {
 						this[tempTiles].push(this.boardState[numUpward])
 						this[attackTiles].push(numUpward)
@@ -550,7 +590,7 @@
 					if(this.boardState[numDownward] === 10 || this.boardState[numDownward] === 11){
 						this[tempTiles].push(0)
 					} else if (this.boardState[numDownward] === 1 || this.boardState[numDownward] === 100) {
-						this.handleLivesAmount(enemy, livesAmountString)
+                        this.handleLivesAmount(enemy, livesAmountString, damageAmount)
 						continue;
 					} else {
 						this[tempTiles].push(this.boardState[numDownward])
@@ -567,7 +607,7 @@
 					if(this.boardState[numUpward] === 10 || this.boardState[numUpward] === 11){
 						this[tempTiles].push(0)
 					} else if (this.boardState[numUpward] === 1 || this.boardState[numUpward] === 100) {
-						this.handleLivesAmount(enemy, livesAmountString)
+                        this.handleLivesAmount(enemy, livesAmountString, damageAmount)
 						continue;
 					} else {
 						this[tempTiles].push(this.boardState[numUpward])
@@ -592,19 +632,20 @@
 					Vue.set(this.boardState, value, this[tempTiles][index])
 				})
 			},
-			handleLivesAmount(enemy, livesAmountString){
+			handleLivesAmount(enemy, livesAmountString, damageAmount){
 				console.log({player: enemy ? 1 : 100, lives: this[livesAmountString] - 1}, 'sending player lives')
-				this.socket.emit('sendPlayerLives', {player: enemy ? 1 : 100, lives: this[livesAmountString] - 1})
+				this.socket.emit('sendPlayerLives', {player: enemy ? 1 : 100, lives: this[livesAmountString] - damageAmount})
 			},
             handleKeyDownListener(e){
 	            if(this.gameOver === true) return
 	            if(e.key === 'f' || e.key === 'v' || e.key === '0') {
 		            if(this.characterId === this.users[0]){
 			            this.playerStatus = 'charging'
+                        this.playerChargeTimeStart = e.timeStamp;
 			            this.socket.emit('sendChangePlayerStatus', {player: 1, status: 'charging', index: this.playerIndex})
-			            console.log('player 1 is charging')
 		            } else if (this.characterId === this.users[1]){
 			            this.enemyStatus = 'charging'
+                        this.enemyChargeTimeStart = e.timeStamp;
 			            this.socket.emit('sendChangePlayerStatus', {player: 100, status: 'charging', index: this.enemyIndex})
 		            }
 	            }
@@ -638,14 +679,16 @@
 
 			window.addEventListener('beforeunload', this.exitWindow)
 			window.addEventListener('keydown', this.handleKeyDownListener)
-			window.addEventListener('keyup', this.handleKeyUpListener)
+			// window.addEventListener('keyup', this.handleKeyUpListener)
 		},
 		beforeDestroy(){
 			console.log('I am being disconnected dude', this.characterId === this.users[0] ? 1 : 100)
 			this.socket.emit('disconnectFromRoom', this.characterId === this.users[0] ? 1 : 100 )
+            this.socket.disconnect()
             console.log('just sent the emit')
 			window.removeEventListener('keydown', this.handleKeyDownEventListener);
-			window.removeEventListener('keyup', this.handleKeyUpEventListener)
+			window.removeEventListener('keyup', this.handleKeyUpEventListener);
+			console.log('we have removed the event listener')
 		}
 	}
 </script>
