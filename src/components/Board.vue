@@ -4,7 +4,9 @@
         <div class="board" :style="boardStyle">
             <BoardPiece :pieceIndex="index"  v-for="(piece, index) in boardState" :key="index"
                         :state="piece" :playerIndex="index === playerIndex ? playerIndex : undefined"
+                        :playerUserName="index === playerIndex ? 'D4Y' : undefined"
                         :pieceWidth="boardPieceHeightAndWidth" :playerStatus="index === playerIndex ? playerStatus : 'normal'"
+                        :enemyUserName="index === enemyIndex ? 'KABBAGE' : undefined"
                         :enemyIndex="index === enemyIndex ? enemyIndex : undefined" :enemyStatus="enemyStatus"
                         :pieceHeight="boardPieceHeightAndWidth">
             </BoardPiece>
@@ -55,6 +57,7 @@
                 playerChargeTimeStart: 0,
                 playerChargeTimeEnd: 0,
                 playerAttackDamage: 0,
+                playerAttackChargeNumber: 0,
                 enemyIndex: 99,
                 enemyState: 100,
 				enemyStatus: 'normal',
@@ -151,7 +154,7 @@
 				    this.playerChargeTimeEnd = e.timeStamp;
 				    let difference = this.playerChargeTimeEnd - this.playerChargeTimeStart
                     this.playerAttackDamage = this.chargeScale(difference);
-				    console.log(this.playerChargeTimeStart, this.playerChargeTimeEnd, difference, this.chargeScale(difference))
+				    console.log(this.playerChargeTimeStart, this.playerChargeTimeEnd, difference, this.chargeScale(difference), this.playerAttackChargeNumber)
 
 				    return this.handleAttack(e, false, this.playerAttackDamage);
 

@@ -9,6 +9,8 @@
             </div>
             <h3>{{ enemy ? enemyStatus : playerStatus }}</h3>
         </div>
+            <div v-if="playerStatus === 'charging'" class="charge-bar" :style="chargeBarStyle"></div>
+            <div v-if="enemyStatus === 'charging'" class="charge-bar" :style="chargeBarStyle"></div>
     </div>
 </template>
 
@@ -72,6 +74,15 @@
                     transition: 0.2 + 's ease',
                 }
             },
+	        chargeBarStyle(){
+		        return {
+			        marginLeft: 16 + 'px',
+			        height: 25 + 'px',
+			        borderBottom: '2px solid #000000',
+			        borderRadius: '5px 2px 5px 2px',
+			        boxShadow: '0 0 30px 1px #3c033c',
+		        }
+	        },
             currentColor(){
                 return 'white'
             },
@@ -96,18 +107,21 @@
             }
         },
         watch:{
-          livesAmount(){
-              document.getElementById(this.playerUiId).classList.add('player-hit')
+            livesAmount(){
+                document.getElementById(this.playerUiId).classList.add('player-hit')
 
-              setTimeout(() => {
-                  if(document.getElementById(this.playerUiId).classList.contains('player-hit')){
-                    document.getElementById(this.playerUiId).classList.remove('player-hit')
-                      console.log('removing player hit')
-                  }
-              }, 250)
+                setTimeout(() => {
+                    if(document.getElementById(this.playerUiId).classList.contains('player-hit')){
+                        document.getElementById(this.playerUiId).classList.remove('player-hit')
+                        console.log('removing player hit')
+                    }
+                }, 250)
 
-              return console.log(this.livesAmount)
-          }
+                return console.log(this.livesAmount)
+            },
+            playerStatus(){
+          	    console.log(this.playerStatus)
+            }
         },
         methods:{
             makeId(length){
@@ -177,6 +191,35 @@
 
         40%, 60% {
             transform: translate3d(4px, -10px, 0);
+        }
+    }
+
+    .charge-bar{
+        animation: charge 1s ease;
+        width: 50%;
+        background-color: #129e12
+    }
+
+    @keyframes charge {
+        0%{
+            width: 0;
+            background-color: red
+        }
+
+        5%{
+            width: 1%
+        }
+
+        50%{
+            background-color: yellow
+        }
+
+        80%{
+            background-color: #129e12
+        }
+
+        100%{
+            width: 50%
         }
     }
 </style>

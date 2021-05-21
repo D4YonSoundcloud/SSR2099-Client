@@ -101,7 +101,7 @@
 					'fire': 'dry',
 					'dry': 'wet',
 				},
-				socket: io('http://localhost:4000/', {
+				socket: io('http://soundcloud-stardum-royale-test.herokuapp.com/', {
 					query: {
 						roomId: this.roomId
                     }

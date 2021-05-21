@@ -32,7 +32,7 @@
                 <h1 class="room-select-h1" v-if="showCharacterSelect" :style="h1Style">Artist Select - ({{roomId}})</h1>
                 <div class="character-select" :style="characterSelectContainerStyle">
                     <div class="room-type-container" :style="selectedCharacter === 'D4Y' ? characterSelectedStyle : characterSelectStyle" @click="selectCharacter('D4Y')"> <p>D4Y</p> </div>
-                    <div class="room-type-container" :style="selectedCharacter === 'Kabbage' ? characterSelectedStyle : characterSelectStyle" @click="selectCharacter('Kabbage')"> <p>Kabbage</p> </div>
+                    <div class="room-type-container" :style="selectedCharacter === 'KABBAGE' ? characterSelectedStyle : characterSelectStyle" @click="selectCharacter('KABBAGE')"> <p>Kabbage</p> </div>
                     <div class="room-type-container" :style="selectedCharacter === 'Goob' ? characterSelectedStyle : characterSelectStyle" @click="selectCharacter('Goob')"> <p>Goob</p> </div>
                     <div class="room-type-container" :style="selectedCharacter === 'Tathardes' ? characterSelectedStyle : characterSelectStyle" @click="selectCharacter('Tathardes')"> <p>Tathardes</p> </div>
                 </div>
