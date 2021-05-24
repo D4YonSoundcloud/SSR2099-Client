@@ -212,7 +212,7 @@
 					this.users = data.userIDs;
 					this.playerNames = data.users;
 					this.socket.emit('newUser', {id: this.characterId, username: this.playerUserName});
-					console.log('called emit new user', this.users, this.playerNames, data.game)
+					console.log('called emit new user', this.users, this.playerNames)
 				});
 				this.listen();
 			},
@@ -224,24 +224,28 @@
 		            this.playerNames = data.users;
 		            console.log(this.users, this.playerNames, data.boardState)
 	            })
-	            this.socket.on('giveUserInformation', data => {
-	                console.log(data.game)
-		            this.assignPlayerInfo(data)
-	            })
-	            this.socket.on('giveGridState', data => {
-		            console.log(this.boardState, this.playerUserName, 'I am going to update the board State');
-                    this.boardState = data.gridState;
-		            console.log(this.boardState, this.playerUserName, 'I have updated the board State');
-	            })
-                this.socket.on('giveChangePlayerStatus', data => {
-                	this.playerStatus = data.playerOne.status;
-                	this.enemyStatus = data.playerTwo.status;
-                	console.log('player status has been changed');
+                this.socket.on('giveServerUpdate', data => {
+                	console.log('we are getting a server update')
+                	this.assignPlayerInfo(data)
                 })
-                this.socket.on('givePlayerAttack', data => {
-                	this.boardState = data.boardState;
-                	console.log('attack has been set from socket')
-                })
+	            // // this.socket.on('giveUserInformation', data => {
+	            // //     console.log(data.game)
+		        // //     this.assignPlayerInfo(data)
+	            // // })
+	            // this.socket.on('giveGridState', data => {
+		        //     console.log(this.boardState, this.playerUserName, 'I am going to update the board State');
+                //     this.boardState = data.gridState;
+		        //     console.log(this.boardState, this.playerUserName, 'I have updated the board State');
+	            // })
+                // this.socket.on('giveChangePlayerStatus', data => {
+                // 	this.playerStatus = data.playerOne.status;
+                // 	this.enemyStatus = data.playerTwo.status;
+                // 	console.log('player status has been changed');
+                // })
+                // this.socket.on('givePlayerAttack', data => {
+                // 	this.boardState = data.boardState;
+                // 	console.log('attack has been set from socket')
+                // })
                 this.socket.on('givePlayerHealth', data => {
                 	console.log(data.playerOne.lives, data.playerTwo.lives)
                     this.playerLives = data.playerOne.lives
@@ -260,19 +264,20 @@
 			assignPlayerInfo(data){
 				console.log(this.boardState, data.boardState, this.playerUserName, 'i am calling assign player info')
 
-                this.boardState = data.boardState;
+				this.users = data.matchIDs;
+				this.playerNames = data.matchUserName;
 
-                this.playerIndex = data.playerOne.index;
-                this.playerStatus = data.playerOne.status;
-                this.playerState = data.playerOne.state;
-                this.playerAttackTiles = data.playerOne.attackTiles;
-                this.playerAttackTempTilesState = data.playerOne.tempTiles;
+                this.playerIndex = data.matchPlayerOne.index;
+                this.playerStatus = data.matchPlayerOne.status;
+                this.playerState = data.matchPlayerOne.state;
+                this.playerAttackTiles = data.matchPlayerOne.attackTiles;
+                this.playerAttackTempTilesState = data.matchPlayerOne.tempTiles;
 
-				this.enemyIndex = data.playerTwo.index;
-				this.enemyStatus = data.playerTwo.status;
-				this.enemyState = data.playerTwo.state;
-				this.enemyAttackTiles = data.playerTwo.attackTiles;
-				this.enemyAttackTempTilesState = data.playerTwo.tempTiles;
+				this.enemyIndex = data.matchPlayerTwo.index;
+				this.enemyStatus = data.matchPlayerTwo.status;
+				this.enemyState = data.matchPlayerTwo.state;
+				this.enemyAttackTiles = data.matchPlayerTwo.attackTiles;
+				this.enemyAttackTempTilesState = data.matchPlayerTwo.tempTiles;
 
 				if(this.characterId === this.users[0]){
 					console.log('this is player one', this.playerIndex, this.playerStatus)
@@ -280,8 +285,10 @@
 					console.log('this is player two', this.enemyIndex, this.playerIndex)
                 }
 
-				this.boardState[this.playerIndex] = this.playerState
-				this.boardState[this.enemyIndex] = this.enemyState
+				// this.boardState[this.playerIndex] = this.playerState
+				// this.boardState[this.enemyIndex] = this.enemyState
+
+                this.boardState = data.matchBoard;
             },
 			handleKeyDownEvent(e) {
 				if(this.characterId === this.users[0]){
@@ -307,23 +314,28 @@
                 }
 
 				let indexString = this.characterId === this.users[0] ? 'playerIndex' : 'enemyIndex'
+                let playerState = this.characterId === this.users[0] ? 1 : 100
                 console.log(indexString, this.characterId, this.users[0])
 
 				if(this.keyCodes[e.keyCode] === 'right') {
 					console.log('right')
                     this.buttonPressed = 'right';
+					this.socket.emit('sendPlayerInput', {player: playerState ,input: 'right'})
 					return this.handleRightKey(this[indexString], indexString)
 				} else if(this.keyCodes[e.keyCode] === 'left') {
 					console.log('left')
                     this.buttonPressed = 'left';
+					this.socket.emit('sendPlayerInput', {player: playerState ,input: 'left'})
 					return this.handleLeftKey(this[indexString], indexString)
 				} else if(this.keyCodes[e.keyCode] === 'up') {
 					console.log('up')
                     this.buttonPressed = 'up';
+					this.socket.emit('sendPlayerInput', {player: playerState ,input: 'up'})
 					return this.handleUpKey(this[indexString], indexString)
 				} else if(this.keyCodes[e.keyCode] === 'down') {
 					console.log('down')
                     this.buttonPressed = 'down';
+					this.socket.emit('sendPlayerInput', {player: playerState ,input: 'down'})
 					return this.handleDownKey(this[indexString], indexString)
 				}
 			},
@@ -521,12 +533,12 @@
 				this.boardState[this[indexString]] = this[playerState];
 				this.boardState[this[indexString] + this.swapLookUpTable[keyCode]] = temp;
 
-				this.socket.emit('sendUpdatePlayerIndex', {
-					player: this.characterId === this.users[0] ? 1 : 100,
-                    index: this[indexString],
-                    oldIndex: this[indexString] + this.swapLookUpTable[keyCode],
-                    oldValue: temp,
-                })
+				// this.socket.emit('sendUpdatePlayerIndex', {
+				// 	player: this.characterId === this.users[0] ? 1 : 100,
+                //     index: this[indexString],
+                //     oldIndex: this[indexString] + this.swapLookUpTable[keyCode],
+                //     oldValue: temp,
+                // })
 			},
 			decideStatus(playerStatus, pieceState, eventKeyCode){
 				let statusString = this.playerKeyCodes.includes(eventKeyCode) ? 'playerStatus' : 'enemyStatus';
