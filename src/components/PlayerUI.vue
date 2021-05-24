@@ -11,6 +11,8 @@
         </div>
             <div v-if="playerStatus === 'charging'" class="charge-bar" :style="chargeBarStyle"></div>
             <div v-if="enemyStatus === 'charging'" class="charge-bar" :style="chargeBarStyle"></div>
+
+        <div class="player-sprite-div" :style="playerSpriteDivStyle"></div>
     </div>
 </template>
 
@@ -18,7 +20,27 @@
     export default {
         name: "PlayerUI",
         props: ['enemy', 'playerUsername', 'multiplayer', 'enemyLives', 'playerLives', 'playerStatus', 'enemyStatus'],
+        data(){
+            return {
+                choosePlayerTitleSprite:{
+                    'D4Y': `url(${require('../assets/D4Y-TITLE-SPRITE.png')})`,
+                    'KABBAGE': `url(${require('../assets/KABBAGE-TITLE-SPRITE.png')})`
+                }
+            }
+        },
         computed:{
+            playerSpriteDivStyle(){
+                return {
+                    zIndex: -1,
+                    height: 100 + '%',
+                    width: 100 + '%',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    backgroundImage: this.choosePlayerTitleSprite[this.playerUsername],
+                    filter: 'drop-shadow(rgb(120, 4, 136) 0px 0px 10px)'
+                }
+            },
             mainContainerStyle() {
 	            return {
 		            width: 300 + 'px',
@@ -40,6 +62,9 @@
                     width: 100 + '%',
                     height: 5 + '%',
                     fontFamily: "'Viga', sans-serif",
+                    position: 'absolute',
+                    top: 0,
+                    marginTop: 8 + 'px',
                 }
             },
             lifeContainerStyle(){
@@ -54,12 +79,17 @@
             },
             healthBarContainerStyle(){
 	            return {
-		            width: 85 + '%',
+		            width: 105 + '%',
+                    backgroundColor: '#4c0e58',
 		            height: 50 + '%',
 		            display: 'flex',
 		            flexFlow: 'row',
 		            justifyContent: 'center',
-		            alignItems: 'center'
+		            alignItems: 'center',
+                    boxShadow: 'rgb(136 4 136) 0px 0px 10px 0px',
+                    marginBottom: 16 + 'px',
+                    marginTop: 48 + 'px',
+                    paddingRight: 28 + 'px',
 	            }
             },
             healthBarStyle(){
@@ -81,6 +111,9 @@
 			        borderBottom: '2px solid #000000',
 			        borderRadius: '5px 2px 5px 2px',
 			        boxShadow: '0 0 30px 1px #3c033c',
+                    position: 'absolute',
+                    bottom: 25 + '%',
+                    left: 20 + '%',
 		        }
 	        },
             currentColor(){

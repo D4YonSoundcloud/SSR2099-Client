@@ -1,6 +1,6 @@
 <template>
     <div class="board-container" :style="boardContainerStyle">
-        <PlayerUI :enemy="false" :playerUsername="playerNames[0]" :multiplayer="true" :playerLives="playerLives"></PlayerUI>
+        <PlayerUI :enemy="false" :playerUsername="playerNames[0]" :multiplayer="true" :playerLives="playerLives" :playerStatus="playerStatus"></PlayerUI>
         <div class="board" :style="boardStyle">
             <BoardPiece :pieceIndex="index"  v-for="(piece, index) in boardState" :key="index"
                         :state="piece" :playerIndex="index === playerIndex ? playerIndex : undefined"
@@ -14,12 +14,16 @@
             <h1 v-if="gameOver === true" style="margin-top: 16px; color: white;">
                 <mark style="padding: 4px">Game Over!</mark>
                 {{playerLives < 1 ? playerNames[1] : playerNames[0]}}
-                <mark style="padding: 4px">won</mark>,
+                <mark style="padding: 4px">won</mark>
                 and {{playerLives < 1 ? playerNames[0] : playerNames[1]}}
                 <mark style="padding: 4px">lost</mark>
             </h1>
+            <!-- TODO MAKE THIS A BUTTON BRO PLZ --->
+            <div class="rematch-btn" v-if="gameOver === true" :style="buttonStyle" @click="rematch()">
+                <h1 class="blinking-h1" :style="h1Style"> REMATCH? {{rematchCount}}/2</h1>
+            </div>
         </div>
-        <PlayerUI :enemy="true" :playerUsername="this.playerNames[1]" :multiplayer="true" :enemyLives="enemyLives"></PlayerUI>
+        <PlayerUI :enemy="true" :playerUsername="this.playerNames[1]" :multiplayer="true" :enemyLives="enemyLives" :enemyStatus="enemyStatus"></PlayerUI>
     </div>
 </template>
 
@@ -101,9 +105,14 @@
 					'fire': 'dry',
 					'dry': 'wet',
 				},
-				socket: io('http://soundcloud-stardum-royale-test.herokuapp.com/', {
-					query: {
-						roomId: this.roomId
+				// socket: io('https://stark-thicket-52069.herokuapp.com/', {
+				// 	query: {
+				// 		roomId: this.roomId
+                //     }
+                // }),
+                socket: io('http://localhost:4000/', {
+                    query: {
+                        roomId: this.roomId
                     }
                 }),
 				playerUserName: '',
@@ -114,20 +123,39 @@
                 enemyLives: 50,
                 buttonPressed: '',
                 chargeScale: d3.scaleLinear().domain([50,1000]).range([5,20]).clamp(true),
+                moveDelay: false,
+                rematchCount: 0,
+                hasGivenRematchCount: false,
 			}
 		},
 		computed:{
 			boardPieceHeightAndWidth(){
 				return this.boardWidth / 10
 			},
+            buttonStyle(){
+                return {
+                    width: 300 + 'px',
+                    height: 50 + 'px',
+                    display: 'flex',
+                    flexFlow: 'row',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    cursor: 'pointer',
+                    color: 'white',
+                    marginTop: 5 + '%',
+                    marginLeft: 20 + '%',
+                    borderRadius: '1.25%',
+                    boxShadow: '0 0 10px 0 #bf05bf',
+                }
+            },
 			boardContainerStyle(){
 				return {
-					paddingTop: 2.5 + '%',
+                    paddingBottom: 2.5 + '%',
 					height: 100 + '%',
 					width: 100 + 'vw',
 					display: 'flex',
 					justifyContent: 'center',
-					alignContent: 'center',
+					alignItems: 'center',
 				}
 			},
 			boardStyle(){
@@ -140,6 +168,14 @@
 					boxShadow: 'rgb(90 5 90) 0px 0px 100px 0',
 				}
 			},
+            h1Style(){
+                return {
+                    width: 100 + '%',
+                    height: 100 + '%',
+                    fontFamily: "'Viga', sans-serif",
+                    cursor: 'pointer',
+                }
+            },
 			playerLivesStore(){
 				return this.$store.state.playerLivesStore
 			},
@@ -160,6 +196,14 @@
 			}
 		},
 		methods:{
+		    rematch(){
+                console.log('we are starting a rematch')
+                if(this.hasGivenRematchCount === true){
+                    return console.log('you have already done this')
+                }
+                this.hasGivenRematchCount = true;
+                this.socket.emit('sendAddToRematch')
+            },
 			joinServer(){
 				console.log('we are trying to join the server');
 				//does not get called when the other user joins because it is socket.emit in Server.js, not io.emit
@@ -203,6 +247,14 @@
                     this.playerLives = data.playerOne.lives
                     this.enemyLives = data.playerTwo.lives
                     console.log('player health has been updated from socket')
+                })
+                this.socket.on('givePlayerRematchCount', data => {
+                    this.rematchCount = data.rematchCount;
+                })
+                this.socket.on('giveRestartGame', () => {
+                    this.rematchCount = 0;
+                    this.hasGivenRematchCount = false;
+                    this.gameOver = false
                 })
             },
 			assignPlayerInfo(data){
@@ -523,7 +575,7 @@
 
 						if(this.boardState[subtractTileIndex === 10] || this.boardState[subtractTileIndex] === 11){
 							this[tempTiles].push(0)
-						} else if (this.boardState[subtractTileIndex] === 1 || this.boardState[subtractTileIndex] === 100) {
+						} else if ((this.boardState[subtractTileIndex] === 1 && enemy === true) || (this.boardState[subtractTileIndex] === 100 && enemy === false)) {
 							this.handleLivesAmount(enemy, livesAmountString, damageAmount)
 							continue;
 						} else {
@@ -539,7 +591,7 @@
 
 						if(this.boardState[addTileIndex] === 10 || this.boardState[addTileIndex] === 11){
 							this[tempTiles].push(0)
-						} else if (this.boardState[addTileIndex] === 1 || this.boardState[addTileIndex] === 100) {
+						} else if ((this.boardState[addTileIndex] === 1 && enemy === true) || (this.boardState[addTileIndex] === 100 && enemy === false)) {
 							this.handleLivesAmount(enemy, livesAmountString, damageAmount)
 							continue;
 						} else {
@@ -560,7 +612,7 @@
 					} else if(this.boardState[numDownward] === 10 || this.boardState[numDownward] === 11){
 						this[tempTiles].push(0)
 						this[attackTiles].push(numDownward);
-					} else if (this.boardState[numDownward] === 1 || this.boardState[numDownward] === 100) {
+					} else if ((this.boardState[numDownward] === 1 && enemy === true) || (this.boardState[numDownward] === 100 && enemy === false)) {
                         this.handleLivesAmount(enemy, livesAmountString, damageAmount)
 					} else {
 						this[tempTiles].push(this.boardState[numDownward])
@@ -573,7 +625,7 @@
 					} else if(this.boardState[numUpward] === 10 || this.boardState[numUpward] === 11){
 						this[attackTiles].push(numUpward)
 						this[tempTiles].push(0)
-					} else if (this.boardState[numUpward] === 1 || this.boardState[numUpward] === 100) {
+					} else if ((this.boardState[numUpward] === 1 && enemy === true) || (this.boardState[numUpward] === 100 && enemy === false)) {
                         this.handleLivesAmount(enemy, livesAmountString, damageAmount)
 					} else {
 						this[tempTiles].push(this.boardState[numUpward])
@@ -589,7 +641,7 @@
 
 					if(this.boardState[numDownward] === 10 || this.boardState[numDownward] === 11){
 						this[tempTiles].push(0)
-					} else if (this.boardState[numDownward] === 1 || this.boardState[numDownward] === 100) {
+					} else if ((this.boardState[numDownward] === 1 && enemy === true) || (this.boardState[numDownward] === 100 && enemy === false)) {
                         this.handleLivesAmount(enemy, livesAmountString, damageAmount)
 						continue;
 					} else {
@@ -606,7 +658,7 @@
 
 					if(this.boardState[numUpward] === 10 || this.boardState[numUpward] === 11){
 						this[tempTiles].push(0)
-					} else if (this.boardState[numUpward] === 1 || this.boardState[numUpward] === 100) {
+					} else if ((this.boardState[numUpward] === 1 && enemy === true) || (this.boardState[numUpward] === 100 && enemy === false)) {
                         this.handleLivesAmount(enemy, livesAmountString, damageAmount)
 						continue;
 					} else {
@@ -638,6 +690,7 @@
 			},
             handleKeyDownListener(e){
 	            if(this.gameOver === true) return
+
 	            if(e.key === 'f' || e.key === 'v' || e.key === '0') {
 		            if(this.characterId === this.users[0]){
 			            this.playerStatus = 'charging'
@@ -649,6 +702,16 @@
 			            this.socket.emit('sendChangePlayerStatus', {player: 100, status: 'charging', index: this.enemyIndex})
 		            }
 	            }
+
+	            if(this.moveDelay === true) {
+	                return console.log('you are on a delay my guy')
+                } else {
+	                this.moveDelay = true;
+	                setTimeout(() => {
+	                    this.moveDelay = false;
+                    }, 33)
+                }
+
 	            return this.handleKeyDownEvent(e);
             },
             handleKeyUpListener(e){
@@ -696,5 +759,31 @@
 <style scoped>
     mark{
         background-color: orange;
+    }
+    .rematch-btn{
+        background: linear-gradient(320deg, #8a18d0, #bd3ce7, #550a6d, #9248a5);
+        background-size: 400% 400%;
+        animation: gradient 10s ease infinite;
+        transition: 0.2s ease;
+    }
+
+    @keyframes gradient {
+        0% {
+            background-position: 0 50%;
+        }
+        25% {
+            background-position: 100% 50%;
+        }
+        75% {
+            background-position: 50% 100%;
+        }
+        100%
+        {
+            background-position: 0 50%;
+        }
+    }
+
+    .rematch-btn:hover{
+        transform: translateX(15px);
     }
 </style>

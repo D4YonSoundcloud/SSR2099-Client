@@ -5,6 +5,7 @@
             <BoardPiece :pieceIndex="index"  v-for="(piece, index) in boardState" :key="index"
                         :state="piece" :playerIndex="index === playerIndex ? playerIndex : undefined"
                         :playerUserName="index === playerIndex ? 'D4Y' : undefined"
+                        :buttonPressed="buttonPressed"
                         :pieceWidth="boardPieceHeightAndWidth" :playerStatus="index === playerIndex ? playerStatus : 'normal'"
                         :enemyUserName="index === enemyIndex ? 'KABBAGE' : undefined"
                         :enemyIndex="index === enemyIndex ? enemyIndex : undefined" :enemyStatus="enemyStatus"
@@ -99,6 +100,7 @@
                     'fire': 'dry',
                     'dry': 'wet',
                 },
+                buttonPressed: '',
                 chargeScale: d3.scaleLinear().domain([50,1000]).range([5,20]).clamp(true),
             }
         },
@@ -108,12 +110,12 @@
             },
             boardContainerStyle(){
 				return {
-					paddingTop: 2.5 + '%',
+					paddingBottom: 2.5 + '%',
 					height: 100 + 'vh',
                     width: 100 + 'vw',
                     display: 'flex',
                     justifyContent: 'center',
-                    alignContent: 'center',
+                    alignItems: 'center',
                     minWidth: 1175 + 'px',
                     color: 'white',
                 }
@@ -170,15 +172,19 @@
 			    }
 
 		    	if(this.keyCodes[e.keyCode] === 'right') {
+                    this.buttonPressed = 'right';
 		    		console.log('right')
 		    		return this.handleRightKey(this.playerKeyCodes.includes(e.keyCode) ? this.playerIndex : this.enemyIndex, e.keyCode)
                 } else if(this.keyCodes[e.keyCode] === 'left') {
+                    this.buttonPressed = 'left';
 				    console.log('left')
 				    return this.handleLeftKey(this.playerKeyCodes.includes(e.keyCode) ? this.playerIndex : this.enemyIndex, e.keyCode)
 			    } else if(this.keyCodes[e.keyCode] === 'up') {
+                    this.buttonPressed = 'up';
 				    console.log('up')
 				    return this.handleUpKey(this.playerKeyCodes.includes(e.keyCode) ? this.playerIndex : this.enemyIndex, e.keyCode)
 			    } else if(this.keyCodes[e.keyCode] === 'down') {
+                    this.buttonPressed = 'down';
 				    console.log('down')
 				    return this.handleDownKey(this.playerKeyCodes.includes(e.keyCode) ? this.playerIndex : this.enemyIndex, e.keyCode)
 			    }
@@ -229,10 +235,12 @@
 
                 if ((currentIndex + 1)%this.columnCount === 0) {
                 	if(this.boardState[currentIndex + 1] === 25) return console.log('this is a wall')
+                    if(this.boardState[currentIndex - (this.columnCount - 1)] === 1 || this.boardState[currentIndex - (this.columnCount - 1)] === 100) return
 
 	                this.swap(currentIndex - (this.columnCount - 1), playerIndex - (this.columnCount - 1),'rightWall', keyCode)
                 } else {
                 	if(this.boardState[currentIndex + 1] === 25) return console.log('this is a wall')
+                    if(this.boardState[currentIndex + 1] === 1 || this.boardState[currentIndex + 1] === 100) return console.log('this is a wall')
 
 	                this.swap(currentIndex + 1, playerIndex + 1,'right', keyCode)
                 }
@@ -242,9 +250,13 @@
 
 	            if ((currentIndex + 1)%this.columnCount === 1) {
 	            	if(this.boardState[currentIndex - 1] === 25) return console.log('this is a wall')
+                    if(this.boardState[currentIndex + (this.columnCount - 1)] === 1 || this.boardState[currentIndex + (this.columnCount - 1)] === 100) return
+
 		            this.swap(currentIndex + (this.columnCount - 1), playerIndex + (this.columnCount - 1),'leftWall', keyCode)
 	            } else {
 		            if(this.boardState[currentIndex - 1] === 25) return console.log('this is a wall')
+
+                    if(this.boardState[currentIndex - 1] === 1 || this.boardState[currentIndex - 1] === 100) return console.log('this is a wall')
 		            this.swap(currentIndex - 1, playerIndex - 1, 'left', keyCode)
 	            }
             },
@@ -261,6 +273,7 @@
 		    		let temp = this.boardState[lastRowStart + currentIndex]
 
                     if(temp === 25) return console.log('there is a wall here')
+                    if(temp === 100 || temp === 1) return console.log('there is a player here')
 
 				    if(this.playerKeyCodes.includes(eventKeyCode)){
 					    this.playerIndex = lastRowStart + currentIndex;
@@ -275,6 +288,7 @@
 		    		this.boardState[oldPlayerIndex] = temp;
                 } else {
 		    		if(this.boardState[playerIndex - this.columnCount] === 25) return console.log('you are hitting a wall dude')
+                    if(this.boardState[playerIndex - this.columnCount] === 1 || this.boardState[playerIndex - this.columnCount] === 100) return console.log('you are hitting a wall dude')
 
 				    this.swap(currentIndex - this.columnCount, playerIndex - this.columnCount, 'up', eventKeyCode)
                 }
@@ -291,6 +305,7 @@
 			        playerIndex = difference;
 
 			        if(temp === 25) return console.log('there is a wall here')
+                    if(temp === 100 || temp === 1) return console.log('there is a player here')
 
 			        if(this.playerKeyCodes.includes(eventKeyCode)){
 				        this.playerIndex = playerIndex;
@@ -302,6 +317,7 @@
 			        this.boardState[oldPlayerIndex] = temp;
 		        } else {
 		        	if(this.boardState[playerIndex + this.columnCount] === 25) return console.log('you are hitting a wall bro')
+                    if(this.boardState[playerIndex + this.columnCount] === 1 || this.boardState[playerIndex + this.columnCount] === 100) return console.log('you are hitting a wall bro')
 
 			        this.swap(currentIndex + this.columnCount, playerIndex + this.columnCount, 'down', eventKeyCode)
 		        }

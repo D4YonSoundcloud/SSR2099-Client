@@ -23,8 +23,8 @@
                     1: 'rgba(0,0,0,0)',
                     2: 'orange',
                     3: 'lightblue',
-                    10: 'red',
-                    11: 'red',
+                    10: 'rgba(0,0,0,0)',
+                    11: 'rgba(0,0,0,0)',
                     25: 'rgb(24,24,24)',
                     100: 'rgba(0,0,0,0)',
                 },
@@ -33,8 +33,8 @@
                     1: this.pieceWidth * 0.95,
                     2: this.pieceWidth * 0.95,
                     3: this.pieceWidth * 0.95,
-                    10: this.pieceWidth * 0.99,
-                    11: this.pieceWidth * 0.65,
+                    10: this.pieceWidth * 1,
+                    11: this.pieceWidth * 0.75,
                     25: this.pieceWidth * 0.95,
                     100: this.pieceWidth * 0.95,
                 },
@@ -44,7 +44,7 @@
 					2: this.pieceHeight * 0.95,
 					3: this.pieceHeight * 0.95,
 					10: this.pieceHeight * 0.65,
-                    11: this.pieceHeight * 0.99,
+                    11: this.pieceHeight * 1,
                     100: this.pieceWidth * 0.95,
 					25: this.pieceWidth * 0.95,
 				},
@@ -73,7 +73,14 @@
                     'KABBAGE': `url(${require('../assets/KABBAGE-idle-sprite.png')})`
                 },
                 backgroundSprite:{
-                    0: `url(${require('../assets/background-tile.png')})`
+                    0: `url(${require('../assets/background-tile.png')})`,
+                    10: `url(${require('../assets/LASER-Tile-1.png')})`,
+                    11: `url(${require('../assets/LASER-Vertical.png')})`
+                },
+                backgroundSpriteTransform:{
+                    0: '',
+                    10: Math.random() < 0.5 ? 'rotateY(180deg)' : '',
+                    11: Math.random() < 0.5 ? 'rotateX(180deg)' : '',
                 },
                 playerEyesSprite:{
                     'D4Y': `url(${require('../assets/D4Y-eyes-sprite.png')})`
@@ -163,7 +170,7 @@
                 } else if ( this.state === 100 || this.enemyUserName !== undefined) {
                     return this.playerSpriteTransform[this.buttonPressed]
                 } else {
-			        return ''
+			        return this.backgroundSpriteTransform[this.state];
                 }
             },
             backgroundImage(){
