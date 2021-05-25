@@ -15,7 +15,7 @@
 	export default {
 		name: "BoardPiece",
         props:['state','pieceIndex','pieceWidth','pieceHeight', 'playerIndex', 'playerStatus',
-            'enemyIndex', 'enemyStatus', 'playerUserName', 'enemyUserName', 'buttonPressed'],
+               'enemyIndex', 'enemyStatus', 'playerUserName', 'enemyUserName', 'playerOneButtonPressed', 'playerTwoButtonPressed'],
 		data(){
 			return{
                 boardPieceColors:{
@@ -70,7 +70,8 @@
 				},
                 playerSprite:{
                     'D4Y': `url(${require('../assets/D4Y-idle-sprite.png')})`,
-                    'KABBAGE': `url(${require('../assets/KABBAGE-idle-sprite.png')})`
+                    'KABBAGE': `url(${require('../assets/KABBAGE-idle-sprite.png')})`,
+                    'GOOB': `url(${require('../assets/GOOB-idle-sprite.png')})`
                 },
                 backgroundSprite:{
                     0: `url(${require('../assets/background-tile.png')})`,
@@ -165,10 +166,10 @@
                 }
             },
             transform(){
-			    if(this.state === 1 || this.playerUserName !== undefined) {
-			        return this.playerSpriteTransform[this.buttonPressed]
-                } else if ( this.state === 100 || this.enemyUserName !== undefined) {
-                    return this.playerSpriteTransform[this.buttonPressed]
+			    if(this.state === 1 || this.playerOneButtonPressed !== undefined) {
+			        return this.playerSpriteTransform[this.playerOneButtonPressed]
+                } else if ( this.state === 100 || this.playerTwoButtonPressed !== undefined) {
+                    return this.playerSpriteTransform[this.playerTwoButtonPressed]
                 } else {
 			        return this.backgroundSpriteTransform[this.state];
                 }

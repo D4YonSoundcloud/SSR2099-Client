@@ -1,29 +1,34 @@
 <template>
     <div class="board-container" :style="boardContainerStyle">
-        <PlayerUI :enemy="false" :playerUsername="playerNames[0]" :multiplayer="true" :playerLives="playerLives" :playerStatus="playerStatus"></PlayerUI>
+        <PlayerUI :enemy="false" :playerUsername="playerNames[0]" :multiplayer="true"
+                  :playerLives="playerLives" :playerStatus="playerStatus" :gameOver="gameOver"
+                  :winner="playerLives < 1 ? playerNames[1] : playerNames[0]">
+        </PlayerUI>
         <div class="board" :style="boardStyle">
             <BoardPiece :pieceIndex="index"  v-for="(piece, index) in boardState" :key="index"
                         :state="piece" :playerIndex="index === playerIndex ? playerIndex : undefined"
                         :playerUserName="index === playerIndex ? playerNames[0] : undefined "
-                        :buttonPressed="buttonPressed"
+                        :playerOneButtonPressed="index === playerIndex ? playerOneButtonPressed : undefined"
+                        :playerTwoButtonPressed="index === enemyIndex ? playerTwoButtonPressed : undefined"
                         :enemyUserName="index === enemyIndex ? playerNames[1] : undefined "
                         :pieceWidth="boardPieceHeightAndWidth" :playerStatus="index === playerIndex ? playerStatus : 'normal'"
                         :enemyIndex="index === enemyIndex ? enemyIndex : undefined" :enemyStatus="enemyStatus"
                         :pieceHeight="boardPieceHeightAndWidth">
             </BoardPiece>
-            <h1 v-if="gameOver === true" style="margin-top: 16px; color: white;">
-                <mark style="padding: 4px">Game Over!</mark>
+            <h1 v-if="gameOver === true" style="margin-top: 16px; color: white; width: 100%; text-align:center">
                 {{playerLives < 1 ? playerNames[1] : playerNames[0]}}
-                <mark style="padding: 4px">won</mark>
-                and {{playerLives < 1 ? playerNames[0] : playerNames[1]}}
-                <mark style="padding: 4px">lost</mark>
+                SURVIVES
+<!--                {{playerLives < 1 ? playerNames[0] : playerNames[1]}}-->
             </h1>
             <!-- TODO MAKE THIS A BUTTON BRO PLZ --->
             <div class="rematch-btn" v-if="gameOver === true" :style="buttonStyle" @click="rematch()">
                 <h1 class="blinking-h1" :style="h1Style"> REMATCH? {{rematchCount}}/2</h1>
             </div>
         </div>
-        <PlayerUI :enemy="true" :playerUsername="this.playerNames[1]" :multiplayer="true" :enemyLives="enemyLives" :enemyStatus="enemyStatus"></PlayerUI>
+        <PlayerUI :enemy="true" :playerUsername="this.playerNames[1]" :multiplayer="true"
+                  :winner="playerLives < 1 ? playerNames[1] : playerNames[0]" :gameOver="gameOver"
+                  :enemyLives="enemyLives" :enemyStatus="enemyStatus">
+        </PlayerUI>
     </div>
 </template>
 
@@ -126,6 +131,8 @@
                 moveDelay: false,
                 rematchCount: 0,
                 hasGivenRematchCount: false,
+                playerOneButtonPressed: 'down',
+                playerTwoButtonPressed: 'up',
 			}
 		},
 		computed:{
@@ -224,28 +231,12 @@
 		            this.playerNames = data.users;
 		            console.log(this.users, this.playerNames, data.boardState)
 	            })
+
                 this.socket.on('giveServerUpdate', data => {
                 	console.log('we are getting a server update')
                 	this.assignPlayerInfo(data)
                 })
-	            // // this.socket.on('giveUserInformation', data => {
-	            // //     console.log(data.game)
-		        // //     this.assignPlayerInfo(data)
-	            // // })
-	            // this.socket.on('giveGridState', data => {
-		        //     console.log(this.boardState, this.playerUserName, 'I am going to update the board State');
-                //     this.boardState = data.gridState;
-		        //     console.log(this.boardState, this.playerUserName, 'I have updated the board State');
-	            // })
-                // this.socket.on('giveChangePlayerStatus', data => {
-                // 	this.playerStatus = data.playerOne.status;
-                // 	this.enemyStatus = data.playerTwo.status;
-                // 	console.log('player status has been changed');
-                // })
-                // this.socket.on('givePlayerAttack', data => {
-                // 	this.boardState = data.boardState;
-                // 	console.log('attack has been set from socket')
-                // })
+
                 this.socket.on('givePlayerHealth', data => {
                 	console.log(data.playerOne.lives, data.playerTwo.lives)
                     this.playerLives = data.playerOne.lives
@@ -272,12 +263,14 @@
                 this.playerState = data.matchPlayerOne.state;
                 this.playerAttackTiles = data.matchPlayerOne.attackTiles;
                 this.playerAttackTempTilesState = data.matchPlayerOne.tempTiles;
+                this.playerOneButtonPressed = data.matchPlayerOne.buttonPressed;
 
 				this.enemyIndex = data.matchPlayerTwo.index;
 				this.enemyStatus = data.matchPlayerTwo.status;
 				this.enemyState = data.matchPlayerTwo.state;
 				this.enemyAttackTiles = data.matchPlayerTwo.attackTiles;
 				this.enemyAttackTempTilesState = data.matchPlayerTwo.tempTiles;
+				this.playerTwoButtonPressed = data.matchPlayerTwo.buttonPressed;
 
 				if(this.characterId === this.users[0]){
 					console.log('this is player one', this.playerIndex, this.playerStatus)
@@ -320,23 +313,19 @@
 				if(this.keyCodes[e.keyCode] === 'right') {
 					console.log('right')
                     this.buttonPressed = 'right';
-					this.socket.emit('sendPlayerInput', {player: playerState ,input: 'right'})
-					return this.handleRightKey(this[indexString], indexString)
+					return this.socket.emit('sendPlayerInput', {player: playerState ,input: 'right'})
 				} else if(this.keyCodes[e.keyCode] === 'left') {
 					console.log('left')
                     this.buttonPressed = 'left';
-					this.socket.emit('sendPlayerInput', {player: playerState ,input: 'left'})
-					return this.handleLeftKey(this[indexString], indexString)
+					return this.socket.emit('sendPlayerInput', {player: playerState ,input: 'left'})
 				} else if(this.keyCodes[e.keyCode] === 'up') {
 					console.log('up')
                     this.buttonPressed = 'up';
-					this.socket.emit('sendPlayerInput', {player: playerState ,input: 'up'})
-					return this.handleUpKey(this[indexString], indexString)
+					return this.socket.emit('sendPlayerInput', {player: playerState ,input: 'up'})
 				} else if(this.keyCodes[e.keyCode] === 'down') {
 					console.log('down')
                     this.buttonPressed = 'down';
-					this.socket.emit('sendPlayerInput', {player: playerState ,input: 'down'})
-					return this.handleDownKey(this[indexString], indexString)
+					return this.socket.emit('sendPlayerInput', {player: playerState ,input: 'down'})
 				}
 			},
 			handleAttack(e, enemy, damageAmount){
@@ -368,22 +357,8 @@
 				let trackingNumDownward = currentPlayerIndex - 10;
 				let trackingNumUpward = currentPlayerIndex + 10;
 
-				if(enemy === true) {
-					this.socket.emit('sendChangePlayerStatus', {player: 100, status: 'attacking', index: this.enemyIndex})
-				} else {
-					this.socket.emit('sendChangePlayerStatus', {player: 1, status: 'attacking', index: this.playerIndex})
-				}
-
 				this.findAttackTilesVertical(trackingNumDownward, trackingNumUpward, enemy, damageAmount).then(() => {
-					this.assignAttackTiles('vertical', enemy).then(() => {
-						if(this.characterId === this.users[0]){
-							this.socket.emit('sendPlayerAttack', {player: 1, boardState: this.boardState})
-						} else if (this.characterId === this.users[1]){
-							this.socket.emit('sendPlayerAttack', {player: 100, boardState: this.boardState})
-						}
-						this.attackPressed = false;
-						this.attackCoolDown(enemy)
-					})
+					this.assignAttackTiles('vertical', enemy)
 					console.log('this is a vertical attack')
 				})
 			},

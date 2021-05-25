@@ -209,7 +209,7 @@
 		    	this.findAttackTiles(numToSubtract, numToAdd, currentPlayerIndex, enemy, damageAmount).then(() => {
 		    		this.assignAttackTiles('horizontal',enemy).then(() => {
 		    			console.log('attack is on cooldown', performance.now())
-					    this.attackCoolDown(enemy);
+					    // this.attackCoolDown(enemy);
                     });
 				    console.log(this.playerAttackTiles, this.playerAttackTempTilesState)
 		    	    console.log('this is a horizontal attack', numToSubtract, numToAdd, this.playerIndex)
@@ -223,7 +223,7 @@
 
 	            this.findAttackTilesVertical(trackingNumDownward, trackingNumUpward, enemy, damageAmount).then(() => {
                     this.assignAttackTiles('vertical', enemy).then(() => {
-	                    this.attackCoolDown(enemy)
+	                    // this.attackCoolDown(enemy)
                     })
 		            console.log('this is a vertical attack')
                 })
