@@ -344,8 +344,14 @@
 				if(this.enemyStatus === 'attacking' && enemy === true) return console.log('you are already attacking')
 
 				if(this.keyCodes[e.keyCode] === 'right' || this.keyCodes[e.keyCode] === 'left') {
+                    this.socket.emit('sendPlayerStatusChange', {player: enemy ? 100 : 1, status: 'attacking'})
+                    this.socket.emit('sendPlayerAttack', {player: enemy ? 100 : 1, input: this.keyCodes[e.keyCode]})
+
 					return this.handleHorizontalAttack(enemy ? this.enemyIndex : this.playerIndex, enemy, damageAmount)
 				} else if (this.keyCodes[e.keyCode] === 'up' || this.keyCodes[e.keyCode] === 'down') {
+                    this.socket.emit('sendPlayerStatusChange', {player: enemy ? 100 : 1, status: 'attacking'})
+                    this.socket.emit('sendPlayerAttack', {player: enemy ? 100 : 1, input: this.keyCodes[e.keyCode]})
+
 					return this.handleVerticalAttack(enemy ? this.enemyIndex : this.playerIndex, enemy, damageAmount);
 				}
 			},
@@ -353,22 +359,8 @@
 				let numToSubtract = currentPlayerIndex % 10
 				let numToAdd = this.rowCount - numToSubtract
 
-				if(enemy === true) {
-					this.socket.emit('sendChangePlayerStatus', {player: 100, status: 'attacking', index: this.enemyIndex})
-                } else {
-					this.socket.emit('sendChangePlayerStatus', {player: 1, status: 'attacking', index: this.playerIndex})
-                }
-
 				this.findAttackTiles(numToSubtract, numToAdd, currentPlayerIndex, enemy, damageAmount).then(() => {
-					this.assignAttackTiles('horizontal',enemy).then(() => {
-						if(this.characterId === this.users[0]){
-							this.socket.emit('sendPlayerAttack', {player: 1, boardState: this.boardState})
-						} else if (this.characterId === this.users[1]){
-							this.socket.emit('sendPlayerAttack', {player: 100, boardState: this.boardState})
-						}
-						this.attackPressed = false;
-						this.attackCoolDown(enemy);
-					});
+					this.assignAttackTiles('horizontal',enemy)
 					console.log('this is a horizontal attack')
 				});
 			},
@@ -547,32 +539,6 @@
 					case 3: return this[statusString] = this.playerStatusWaterLookUpTable[playerStatus]
 				}
 			},
-			attackCoolDown(enemy){
-				setTimeout(() => {
-					console.log(this.boardState, enemy, 'we are cooling down')
-					this.resetAttackTiles(enemy).then(() => {
-						console.log('we are sending the reset attack')
-						if(this.characterId === this.users[0]){
-							this.socket.emit('sendPlayerAttack', {player: 1, boardState: this.boardState})
-						} else if (this.characterId === this.users[1]){
-							this.socket.emit('sendPlayerAttack', {player: 100, boardState: this.boardState})
-						}
-
-						let tempTiles = enemy ? 'enemyAttackTempTilesState' : 'playerAttackTempTilesState'
-						let attackTiles = enemy ? 'enemyAttackTiles' : 'playerAttackTiles'
-						let status = enemy ? 'enemyStatus' : 'playerStatus'
-
-						this[status] = 'normal'
-						if(this.characterId === this.users[0]){
-							this.socket.emit('sendChangePlayerStatus', {player: 1, status: 'normal', index: this.playerIndex})
-						} else if (this.characterId === this.users[1]){
-							this.socket.emit('sendChangePlayerStatus', {player: 100, status: 'normal', index: this.enemyIndex})
-						}
-						this[attackTiles] = [];
-						this[tempTiles] = [];
-					})
-				}, 250)
-			},
 			async findAttackTiles(numToSubtract, numToAdd, currentPlayerIndex, enemy, damageAmount){
 				let subtractTileIndex = currentPlayerIndex
 				let addTileIndex = currentPlayerIndex - 1;
@@ -707,11 +673,11 @@
 		            if(this.characterId === this.users[0]){
 			            this.playerStatus = 'charging'
                         this.playerChargeTimeStart = e.timeStamp;
-			            this.socket.emit('sendChangePlayerStatus', {player: 1, status: 'charging', index: this.playerIndex})
+			            this.socket.emit('sendPlayerStatusChange', {player: 1, status: 'charging'})
 		            } else if (this.characterId === this.users[1]){
 			            this.enemyStatus = 'charging'
                         this.enemyChargeTimeStart = e.timeStamp;
-			            this.socket.emit('sendChangePlayerStatus', {player: 100, status: 'charging', index: this.enemyIndex})
+			            this.socket.emit('sendPlayerStatusChange', {player: 100, status: 'charging'})
 		            }
 	            }
 
