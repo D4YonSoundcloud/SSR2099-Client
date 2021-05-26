@@ -4,12 +4,18 @@ import Home from '../views/Home.vue'
 import Board from "../components/Board";
 import BoardMultiplayer from "../components/BoardMultiplayer";
 import RoomSelect from "../components/RoomSelect";
+import TitlePage from "../components/TitlePage";
 
 Vue.use(VueRouter)
 
 const routes = [
   {
     path: '/',
+    name: 'Home',
+    component: TitlePage,
+  },
+  {
+    path: '/local',
     name: 'Board',
     component: Board
   },

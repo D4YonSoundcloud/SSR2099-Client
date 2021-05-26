@@ -18,7 +18,7 @@
                  :style="showJoinSelect ? roomTypeContainerStyle : roomTypeContainerSoloStyle">
                 <h1 class="room-select-h1" v-if="showJoinSelect" :style="h1Style">CREATE+</h1>
                 <div class="room-id" v-if="showRoomId">
-                    <h1> Your Match ID </h1>
+                    <h1 :style="h1Style"> Your Match ID </h1>
                     <p :style="pStyle">{{ roomId }}</p>
                 </div>
                 <button class="room-button" :style="buttonStyle" v-if="showRoomId" @click="goToCharacterSelect()">
@@ -35,7 +35,8 @@
                     <div class="room-type-container" :style="selectedCharacter === 'KABBAGE' ? characterSelectedStyle : characterSelectStyle" @click="selectCharacter('KABBAGE')"> <p>Kabbage</p> </div>
                     <div class="room-type-container" :style="selectedCharacter === 'GOOB' ? characterSelectedStyle : characterSelectStyle" @click="selectCharacter('GOOB')"> <p>Goob</p> </div>
                     <div class="room-type-container" :style="selectedCharacter === 'TATHARDES' ? characterSelectedStyle : characterSelectStyle" @click="selectCharacter('TATHARDES')"> <p>Tathardes</p> </div>
-                    <div class="room-type-container" :style="selectedCharacter === 'YUNG LAZLO' ? characterSelectedStyle : characterSelectStyle" @click="selectCharacter('YUNG LAZLO')"> <p>Tathardes</p> </div>
+                    <div class="room-type-container" :style="selectedCharacter === 'YUNG LAZLO' ? characterSelectedStyle : characterSelectStyle" @click="selectCharacter('YUNG LAZLO')"> <p>Yung Lazlo</p> </div>
+                    <div class="room-type-container" :style="selectedCharacter === 'NESS' ? characterSelectedStyle : characterSelectStyle" @click="selectCharacter('NESS')"> <p>NESS</p> </div>
                 </div>
                 <button class="room-button" :style="buttonStyle" v-if="showCharacterSelect" @click="joinMatch()"> JOIN </button>
                 <button class="room-button" :style="buttonStyle" v-if="showCharacterSelect" @click="goToHome()"> CANCEL </button>
@@ -144,7 +145,9 @@
 					borderRadius: 5 + 'px',
 					marginTop: 6 + 'px',
 					marginBottom: 6 + 'px',
-					transition: this.transitionTime + 's ease'
+					transition: this.transitionTime + 's ease',
+					fontFamily: "'Viga', sans-serif",
+                    boxShadow: '0px 0px 7px 1px orange'
 				}
 			},
 			pStyle(){
@@ -156,8 +159,9 @@
 			},
 			h1Style(){
 				return {
+					fontFamily: "'Viga', sans-serif",
 					cursor: 'pointer',
-					transition: this.transitionTime + 's ease',
+                    transition: this.transitionTime + 's ease',
 				}
 			},
 			boardContainerStyle(){
@@ -175,15 +179,15 @@
 				return {
 					padding: 1.25 + '%',
 					height: 500 + 'px',
-					width: 55 + '%',
+					minWidth: 660 + 'px',
 					display: 'flex',
 					justifyContent: 'space-between',
 					alignContent: 'center',
 					flexFlow: 'row',
 					borderRadius: 10 + 'px',
-					background: 'rgb(37 1 26)',
-					boxShadow:  '20px 20px 60px rgb(25 2 27), -20px -20px 60px rgb(64 20 58)',
+					boxShadow:  'rgb(38 3 49) 0px -16px 20px 0px, inset rgb(31 0 41) 0px -20px 20px 0px',
 					color: 'white',
+                    transition: this.transitionTime + 's ease',
 				}
 			},
 			roomTypeContainerStyle(){
@@ -268,6 +272,20 @@
 </script>
 
 <style scoped>
+    .board-container{
+        background: linear-gradient(180deg, #3b055a, #190221, #260631, #000000);
+        background-size: 400% 400%;
+        animation: gradient 10s ease infinite;
+        transition: 0.2s ease;
+    }
+
+    .room-select-container{
+        background: linear-gradient(359deg, #0d0015, #500b67, #360446, #30033c);
+        background-size: 400% 400%;
+        animation: gradient 10s ease infinite;
+        transition: 0.2s ease;
+    }
+
     .room-type-container:hover{
         transform: scale(1.025);
         box-shadow: 0 0 1px 1px #b4b4b4;
@@ -279,5 +297,21 @@
     .room-button:hover{
         display: initial;
         transform: scale(1.025);
+    }
+
+    @keyframes gradient {
+        0% {
+            background-position: 0 50%;
+        }
+        25% {
+            background-position: 100% 50%;
+        }
+        75% {
+            background-position: 50% 100%;
+        }
+        100%
+        {
+            background-position: 0 50%;
+        }
     }
 </style>

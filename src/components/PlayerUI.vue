@@ -28,6 +28,7 @@
                     'GOOB': `url(${require('../assets/NO-USER-TITLE-SPRITE.png')})`,
                     'TATHARDES': `url(${require('../assets/NO-USER-TITLE-SPRITE.png')})`,
                     'YUNG LAZLO': `url(${require('../assets/NO-USER-TITLE-SPRITE.png')})`,
+                    'NESS': `url(${require('../assets/NO-USER-TITLE-SPRITE.png')})`,
                 }
             }
         },
@@ -138,7 +139,7 @@
                     width: this.livesAmount >= 0 ? ((this.livesAmount/50)*100) + '%' : 0 + '%',
 	                borderBottom: '2px solid #000000',
 	                borderRadius: '5px 2px 5px 2px',
-                    boxShadow: '0 0 30px 1px #3c033c',
+                    boxShadow: 'rgb(191 12 191) 0px 0px 30px 1px',
                     transition: 0.2 + 's ease',
                 }
             },
@@ -148,7 +149,7 @@
 			        height: 25 + 'px',
 			        borderBottom: '2px solid #000000',
 			        borderRadius: '5px 2px 5px 2px',
-			        boxShadow: '0 0 30px 1px #3c033c',
+			        boxShadow: 'rgb(191 12 191) 0px 0px 30px 1px',
                     position: 'absolute',
                     bottom: 25 + '%',
                     left: 20 + '%',

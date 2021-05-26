@@ -34,7 +34,7 @@
                     2: this.pieceWidth * 0.95,
                     3: this.pieceWidth * 0.95,
                     10: this.pieceWidth * 1,
-                    11: this.pieceWidth * 0.75,
+                    11: this.pieceWidth * 1,
                     25: this.pieceWidth * 0.95,
                     100: this.pieceWidth * 0.95,
                 },
@@ -43,7 +43,7 @@
 					1: this.pieceHeight * 0.95,
 					2: this.pieceHeight * 0.95,
 					3: this.pieceHeight * 0.95,
-					10: this.pieceHeight * 0.65,
+					10: this.pieceHeight * 1,
                     11: this.pieceHeight * 1,
                     100: this.pieceWidth * 0.95,
 					25: this.pieceWidth * 0.95,
@@ -159,7 +159,7 @@
                 }
             },
             boxShadow(){
-			    if(this.state === 1 || this.state === 100) {
+			    if(this.state === 1 || this.state === 100 || this.state === 11 || this.state === 10) {
 			        return ''
                 } else {
 			        return '0 0 1px 1px rgba(97, 3, 104, 0.75)'

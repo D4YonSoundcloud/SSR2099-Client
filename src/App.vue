@@ -1,13 +1,23 @@
 <template>
   <div id="app">
-    <div id="nav">
-      <router-link to="/">Local </router-link>
-      <router-link to="/multiplayer"> Online </router-link>
-    </div>
-    <router-view/>
+      <div id="nav">
+          <router-link to="/" style="margin-left: 8px">home</router-link>
+          <router-link to="/local" style="margin-left: 8px">local</router-link>
+          <router-link to="/multiplayer" style="margin-left: 8px">online</router-link>
+      </div>
+      <router-view/>
   </div>
 </template>
 <script>
+  export default {
+    name: "App",
+    methods:{
+      goToMultiplayer(){
+        console.log('going to multiplayer')
+        this.$router.push('/multiplayer')
+      }
+    }
+  }
 </script>
 <style>
 #app {
@@ -20,8 +30,8 @@
 
 #nav {
   position: absolute;
-  bottom: 5%;
-  padding: 30px;
+  bottom: 0;
+  padding: 15px;
 }
 
 #nav a {
