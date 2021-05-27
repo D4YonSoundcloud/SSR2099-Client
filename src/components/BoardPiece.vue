@@ -76,7 +76,8 @@
                 backgroundSprite:{
                     0: `url(${require('../assets/background-tile.png')})`,
                     10: `url(${require('../assets/LASER-Tile-1.png')})`,
-                    11: `url(${require('../assets/LASER-Vertical.png')})`
+                    11: `url(${require('../assets/LASER-Vertical.png')})`,
+                    12: `url(${require('../assets/LASER-melee-tile.png')}`
                 },
                 backgroundSpriteTransform:{
                     0: '',

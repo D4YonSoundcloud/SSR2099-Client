@@ -191,9 +191,6 @@
 
                 return console.log(this.livesAmount)
             },
-            playerStatus(){
-          	    console.log(this.playerStatus)
-            },
         },
         methods:{
             makeId(length){

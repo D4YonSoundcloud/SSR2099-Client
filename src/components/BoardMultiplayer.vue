@@ -233,15 +233,12 @@
 	            })
 
                 this.socket.on('giveServerUpdate', data => {
-                	console.log('we are getting a server update')
                 	this.assignPlayerInfo(data)
                 })
 
                 this.socket.on('givePlayerHealth', data => {
-                	console.log(data.playerOne.lives, data.playerTwo.lives)
                     this.playerLives = data.playerOne.lives
                     this.enemyLives = data.playerTwo.lives
-                    console.log('player health has been updated from socket')
                 })
                 this.socket.on('givePlayerRematchCount', data => {
                     this.rematchCount = data.rematchCount;
@@ -253,7 +250,6 @@
                 })
             },
 			assignPlayerInfo(data){
-				console.log(this.boardState, data.boardState, this.playerUserName, 'i am calling assign player info')
 
 				this.users = data.matchIDs;
 				this.playerNames = data.matchUserName;
@@ -272,12 +268,6 @@
 				this.enemyAttackTempTilesState = data.matchPlayerTwo.tempTiles;
 				this.playerTwoButtonPressed = data.matchPlayerTwo.buttonPressed;
 
-				if(this.characterId === this.users[0]){
-					console.log('this is player one', this.playerIndex, this.playerStatus)
-                } else if (this.characterId === this.users[1]){
-					console.log('this is player two', this.enemyIndex, this.playerIndex)
-                }
-
 				// this.boardState[this.playerIndex] = this.playerState
 				// this.boardState[this.enemyIndex] = this.enemyState
 
@@ -285,22 +275,38 @@
             },
 			handleKeyDownEvent(e) {
 				if(this.characterId === this.users[0]){
-					if(this.playerStatus === 'charging' || this.playerStatus === 'attacking') {
+					if(this.playerStatus === 'melee' || this.playerStatus === 'melee cooldown') {
+                        return console.log('you are in the middle of a melee attack')
+					}
+				} else if (this.characterId === this.users[1]){
+					if(this.enemyStatus === 'melee' || this.enemyStatus === 'melee cooldown') {
+						return console.log('you are in the middle of a melee attack')
+					}
+				}
 
+				if(this.characterId === this.users[0]){
+					if(this.playerStatus === 'charging' || this.playerStatus === 'attacking') {
                         this.playerChargeTimeEnd = e.timeStamp;
                         let difference = this.playerChargeTimeEnd - this.playerChargeTimeStart
                         this.playerAttackDamage = this.chargeScale(difference);
                         console.log(this.playerChargeTimeStart, this.playerChargeTimeEnd, difference, this.chargeScale(difference))
 
+						if(this.playerStatus === 'melee' || this.playerStatus === 'melee cooldown'){
+							return console.log('you are already doing a melee attack')
+						}
+
 					    return this.handleAttack(e, false, this.playerAttackDamage)
                     }
                 } else if (this.characterId === this.users[1]){
 					if(this.enemyStatus === 'charging' || this.enemyStatus === 'attacking') {
-
                         this.enemyChargeTimeEnd = e.timeStamp;
                         let difference = this.enemyChargeTimeEnd - this.enemyChargeTimeStart
                         this.enemyAttackDamage = this.chargeScale(difference);
                         console.log(this.enemyChargeTimeStart, this.enemyChargeTimeEnd, difference, this.chargeScale(difference))
+
+						if(this.playerStatus === 'melee' || this.playerStatus === 'melee cooldown'){
+							return console.log('you are already doing a melee attack')
+						}
 
 					    return this.handleAttack(e, true, this.enemyAttackDamage)
                     }
@@ -656,13 +662,28 @@
 		            }
 	            }
 
+	            if(e.shiftKey === true) {
+	            	console.log('we are doing a melee attack')
+		            if(this.characterId === this.users[0]){
+		            	if(this.playerStatus === 'charging' || this.playerStatus === 'attacking') return
+			            this.playerStatus = 'melee'
+			            this.socket.emit('sendPlayerStatusChange', {player: 1, status: 'melee'})
+			            this.socket.emit('sendMeleeAttack', {player: 1})
+		            } else if (this.characterId === this.users[1]){
+			            if(this.enemyStatus === 'charging' || this.enemyStatus === 'attacking') return
+			            this.enemyStatus = 'melee'
+			            this.socket.emit('sendPlayerStatusChange', {player: 100, status: 'melee'})
+			            this.socket.emit('sendMeleeAttack', {player: 100})
+		            }
+                }
+
 	            if(this.moveDelay === true) {
 	                return console.log('you are on a delay my guy')
                 } else {
 	                this.moveDelay = true;
 	                setTimeout(() => {
 	                    this.moveDelay = false;
-                    }, 33)
+                    }, 50)
                 }
 
 	            return this.handleKeyDownEvent(e);
