@@ -11,11 +11,35 @@
 <script>
   export default {
     name: "App",
+    data(){
+        return{
+            introSong: new Audio(require('./assets/Soundclout-INTRO-SONG.mp3')),
+            introSongPlaying: false,
+            introSongLooping: false,
+        }
+    },
     methods:{
       goToMultiplayer(){
         console.log('going to multiplayer')
         this.$router.push('/multiplayer')
       }
+    },
+    mounted(){
+        document.addEventListener('keydown', (e) => {
+            if(e.key === 'p' || e.key === 'P'){
+                if(this.introSongPlaying === true) {
+                    this.introSong.pause()
+                    this.introSongPlaying = false;
+                } else {
+                    this.introSong.play()
+                    this.introSongPlaying = true;
+                    if(this.introSongLooping === false) {
+                        this.introSong.loop = true;
+                        this.introSongLooping = true;
+                    }
+                }
+            }
+        })
     }
   }
 </script>

@@ -38,12 +38,18 @@
                     <div class="room-type-container" :style="selectedCharacter === 'YUNG LAZLO' ? characterSelectedStyle : characterSelectStyle" @click="selectCharacter('YUNG LAZLO')"> <p>Yung Lazlo</p> </div>
                     <div class="room-type-container" :style="selectedCharacter === 'NESS' ? characterSelectedStyle : characterSelectStyle" @click="selectCharacter('NESS')"> <p>NESS</p> </div>
                 </div>
+                <div class="map-select" :style="mapSelectContainerStyle">
+                    <div class="map-container" v-if="showJoinSelect === false" :style="selectedMap === 'classic' ? mapSelectedStyle : mapSelectStyle" @click="selectMap('classic')"> classic </div>
+                    <div class="map-container" v-if="showJoinSelect === false" :style="selectedMap === 'contained' ? mapSelectedStyle : mapSelectStyle" @click="selectMap('contained')"> contained </div>
+                    <div class="map-container" v-if="showJoinSelect === false" :style="selectedMap === 'big dot' ? mapSelectedStyle : mapSelectStyle" @click="selectMap('big dot')"> big dot</div>
+                </div>
+
                 <button class="room-button" :style="buttonStyle" v-if="showCharacterSelect" @click="joinMatch()"> JOIN </button>
                 <button class="room-button" :style="buttonStyle" v-if="showCharacterSelect" @click="goToHome()"> CANCEL </button>
             </div>
 
         </div>
-        <BoardMultiplayer v-if="multiplayerReady === true" :roomId="roomId" :selectedCharacter="selectedCharacter" :characterId="characterId"></BoardMultiplayer>
+        <BoardMultiplayer v-if="multiplayerReady === true" :roomId="roomId" :selectedCharacter="selectedCharacter" :selectedMap="selectedMap" :characterId="characterId"></BoardMultiplayer>
     </div>
 </template>
 
@@ -68,6 +74,7 @@
                 selectedCharacter: '',
                 characterId: this.makeId(5),
                 multiplayerReady: false,
+                selectedMap: 'classic',
 		    }
         },
         methods:{
@@ -115,6 +122,9 @@
             },
             selectCharacter(character){
 	        	this.selectedCharacter = character;
+            },
+            selectMap(map){
+	            this.selectedMap = map;
             }
         },
 		computed:{
@@ -220,11 +230,58 @@
 					transformOrigin: 'center',
 				}
 			},
+            mapSelectContainerStyle(){
+                return {
+                    cursor: 'default',
+                    padding: 8 + 'px',
+                    height: 30 + '%',
+                    width: 100 + '%',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    flexFlow: 'row',
+                    borderRadius: 2 + 'px',
+                }
+            },
+            mapSelectStyle(){
+                return {
+                    cursor: 'pointer',
+                    padding: 8 + 'px',
+                    height: 50 + 'px',
+                    width: 100 + 'px',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    flexFlow: 'row',
+                    borderRadius: 2 + 'px',
+                    outline: 1 + 'px solid purple',
+                    margin: 8 + 'px',
+                    transformOrigin: 'center',
+                }
+            },
+            mapSelectedStyle(){
+                return {
+                    cursor: 'pointer',
+                    padding: 8 + 'px',
+                    height: 50 + 'px',
+                    width: 100 + 'px',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    flexFlow: 'row',
+                    borderRadius: 2 + 'px',
+                    outline: 2 + 'px solid #b4b4b4',
+                    margin: 8 + 'px',
+                    transform: 'scale(1.025)',
+                    transformOrigin: 'center',
+                    transition: this.transitionTime + 's ease',
+                }
+            },
 			characterSelectContainerStyle(){
 				return {
 					cursor: 'default',
 					padding: 8 + 'px',
-					height: 50 + '%',
+					height: 40 + '%',
 					width: 100 + '%',
 					display: 'flex',
 					justifyContent: 'center',
@@ -247,6 +304,7 @@
 					outline: 1 + 'px solid purple',
 					margin: 8 + 'px',
 					transformOrigin: 'center',
+                    transition: this.transitionTime + 's ease',
 				}
 			},
 			characterSelectedStyle(){

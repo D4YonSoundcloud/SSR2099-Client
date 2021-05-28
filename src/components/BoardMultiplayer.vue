@@ -42,7 +42,7 @@
 	export default {
 		name: "BoardMultiplayer",
 		components:{BoardPiece, PlayerUI},
-        props:['selectedCharacter', 'characterId', 'roomId'],
+        props:['selectedCharacter', 'characterId', 'roomId', 'selectedMap'],
 		data(){
 			return{
 				gameOver: false,
@@ -110,16 +110,18 @@
 					'fire': 'dry',
 					'dry': 'wet',
 				},
-				// socket: io('https://stark-thicket-52069.herokuapp.com/', {
-				// 	query: {
-				// 		roomId: this.roomId
-                //     }
-                // }),
-                socket: io('http://localhost:4000/', {
-                    query: {
-                        roomId: this.roomId
+				socket: io('https://stark-thicket-52069.herokuapp.com/', {
+					query: {
+						roomId: this.roomId,
+                        mapId: this.selectedMap,
                     }
                 }),
+                // socket: io('http://localhost:4000/', {
+                //     query: {
+                //         roomId: this.roomId,
+                //         mapId: this.selectedMap,
+                //     }
+                // }),
 				playerUserName: '',
 				users:[],
                 playerNames: [],
@@ -662,19 +664,38 @@
 		            }
 	            }
 
-	            if(e.shiftKey === true) {
+	            if(e.key === 'q' || e.key === 'Q') {
 	            	console.log('we are doing a melee attack')
 		            if(this.characterId === this.users[0]){
-		            	if(this.playerStatus === 'charging' || this.playerStatus === 'attacking') return
+                        if(this.playerStatus === 'charging' || this.playerStatus === 'attacking' ||
+                            this.playerStatus === 'melee' || this.playerStatus === 'melee cooldown') return
 			            this.playerStatus = 'melee'
 			            this.socket.emit('sendPlayerStatusChange', {player: 1, status: 'melee'})
-			            this.socket.emit('sendMeleeAttack', {player: 1})
+			            this.socket.emit('sendMeleeAttack', {player: 1, type: 'cross'})
 		            } else if (this.characterId === this.users[1]){
-			            if(this.enemyStatus === 'charging' || this.enemyStatus === 'attacking') return
+                        if(this.enemyStatus === 'charging' || this.enemyStatus === 'attacking'||
+                            this.enemyStatus === 'melee' || this.enemyStatus === 'melee cooldown') return
 			            this.enemyStatus = 'melee'
 			            this.socket.emit('sendPlayerStatusChange', {player: 100, status: 'melee'})
-			            this.socket.emit('sendMeleeAttack', {player: 100})
+                        this.socket.emit('sendMeleeAttack', {player: 100, type: 'cross'})
 		            }
+                }
+
+                if(e.key === 'e' || e.key === 'E') {
+                    console.log('we are doing a melee X attack')
+                    if(this.characterId === this.users[0]){
+                        if(this.playerStatus === 'charging' || this.playerStatus === 'attacking' ||
+                            this.playerStatus === 'melee' || this.playerStatus === 'melee cooldown') return
+                        this.playerStatus = 'melee'
+                        this.socket.emit('sendPlayerStatusChange', {player: 1, status: 'melee'})
+                        this.socket.emit('sendMeleeAttack', {player: 1, type: 'x'})
+                    } else if (this.characterId === this.users[1]){
+                        if(this.enemyStatus === 'charging' || this.enemyStatus === 'attacking'||
+                            this.enemyStatus === 'melee' || this.enemyStatus === 'melee cooldown') return
+                        this.enemyStatus = 'melee'
+                        this.socket.emit('sendPlayerStatusChange', {player: 100, status: 'melee'})
+                        this.socket.emit('sendMeleeAttack', {player: 100, type: 'x'})
+                    }
                 }
 
 	            if(this.moveDelay === true) {
@@ -712,7 +733,7 @@
 		created(){
 			this.playerUserName = this.selectedCharacter;
             this.joinServer();
-            console.log('we are joining the server', this.characterId, this.roomId);
+            console.log('we are joining the server', this.characterId, this.roomId, this.selectedMap);
 
 			window.addEventListener('beforeunload', this.exitWindow)
 			window.addEventListener('keydown', this.handleKeyDownListener)

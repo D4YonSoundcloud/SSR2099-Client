@@ -71,7 +71,10 @@
                 playerSprite:{
                     'D4Y': `url(${require('../assets/D4Y-idle-sprite.png')})`,
                     'KABBAGE': `url(${require('../assets/KABBAGE-idle-sprite.png')})`,
-                    'GOOB': `url(${require('../assets/GOOB-idle-sprite.png')})`
+                    'GOOB': `url(${require('../assets/GOOB-idle-sprite.png')})`,
+                    'TATHARDES': `url(${require('../assets/GOOB-idle-sprite.png')})`,
+                    'YUNG LAZLO': `url(${require('../assets/GOOB-idle-sprite.png')})`,
+                    'NESS': `url(${require('../assets/GOOB-idle-sprite.png')})`,
                 },
                 backgroundSprite:{
                     0: `url(${require('../assets/background-tile.png')})`,

@@ -98,6 +98,8 @@
             goToMultiplayer(){
                 this.$router.push('/multiplayer')
             }
+        },
+        created(){
         }
 	}
 </script>
