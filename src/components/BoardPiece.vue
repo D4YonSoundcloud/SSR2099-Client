@@ -1,6 +1,6 @@
 <template>
     <div class="board-piece" :style="boardPieceStyle">
-        <div class="board-piece-inside" :style="boardPieceInsideStyle">
+        <div :id="pieceId" class="board-piece-inside" :style="boardPieceInsideStyle">
 <!--            <p v-if="playerIndex !== undefined" :style="playerStyle"> {{playerStatusText[playerStatus]}} </p>-->
 <!--            <p v-if="enemyIndex !== undefined" :style="playerStyle"> {{playerStatusText[enemyStatus]}} </p>-->
         </div>
@@ -10,11 +10,10 @@
 </template>
 
 <script>
-
-
 	export default {
 		name: "BoardPiece",
         props:['state','pieceIndex','pieceWidth','pieceHeight', 'playerIndex', 'playerStatus',
+               'playerOneLives', 'playerTwoLives', 'playerOneStatus', 'playerTwoStatus',
                'enemyIndex', 'enemyStatus', 'playerUserName', 'enemyUserName', 'playerOneButtonPressed', 'playerTwoButtonPressed'],
 		data(){
 			return{
@@ -185,6 +184,47 @@
 			    	return this.backgroundSprite[this.state]
                 }
             },
+			pieceId(){
+				return this.makeId(5)
+			}
+		},
+        watch:{
+			playerOneLives(){
+				if(this.playerIndex !== undefined){
+					document.getElementById(this.pieceId).classList.add('player-hit')
+
+					setTimeout(() => {
+						if(document.getElementById(this.pieceId).classList.contains('player-hit')){
+							document.getElementById(this.pieceId).classList.remove('player-hit')
+							console.log('removing player hit')
+						}
+					}, 250)
+                }
+            },
+            playerTwoLives(){
+				if(this.enemyIndex !== undefined){
+					document.getElementById(this.pieceId).classList.add('player-hit')
+
+					setTimeout(() => {
+						if(document.getElementById(this.pieceId).classList.contains('player-hit')){
+							document.getElementById(this.pieceId).classList.remove('player-hit')
+							console.log('removing player hit')
+						}
+					}, 250)
+                }
+            }
+        },
+		methods:{
+			makeId(length){
+				let result = [];
+				let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+				let charactersLength = characters.length;
+				for ( let i = 0; i < length; i++ ) {
+					result.push(characters.charAt(Math.floor(Math.random() *
+						charactersLength)));
+				}
+				return result.join('');
+			},
 		},
 		// created(){
 		// 	console.log(this.state, this.pieceIndex, this.pieceWidth, this.pieceHeight)
@@ -193,4 +233,28 @@
 </script>
 
 <style scoped>
+    .player-hit {
+        animation: shake 0.2s cubic-bezier(.36,.07,.19,.97) both;
+        transform: translate3d(0, -10px, 0);
+        backface-visibility: hidden;
+        perspective: 700px;
+    }
+
+    @keyframes shake {
+        10%, 90% {
+            transform: translate3d(-1px, -10px, 0);
+        }
+
+        20%, 80% {
+            transform: translate3d(2px, -10px, 0);
+        }
+
+        30%, 50%, 70% {
+            transform: translate3d(-4px, -10px, 0);
+        }
+
+        40%, 60% {
+            transform: translate3d(4px, -10px, 0);
+        }
+    }
 </style>

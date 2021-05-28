@@ -1,11 +1,14 @@
 <template>
-    <div class="board-container" :style="boardContainerStyle">
+    <div class="board-container" id="multiplayer-board" :style="boardContainerStyle">
         <PlayerUI :enemy="false" :playerUsername="playerNames[0]" :multiplayer="true"
                   :playerLives="playerLives" :playerStatus="playerStatus" :gameOver="gameOver"
                   :winner="playerLives < 1 ? playerNames[1] : playerNames[0]">
         </PlayerUI>
         <div class="board" :style="boardStyle">
-            <BoardPiece :pieceIndex="index"  v-for="(piece, index) in boardState" :key="index"
+            <BoardPiece :pieceIndex="index"  v-for="(piece, index) in boardState" :key="index" class="board-piece"
+                        @click.native="calculateMouseMovement(index, characterId === users[0] ? playerIndex : enemyIndex)"
+                        :playerOneLives="playerLives" :playerOneStatus="playerStatus"
+                        :playerTwoLives="enemyLives" :playerTwoStatus="enemyStatus"
                         :state="piece" :playerIndex="index === playerIndex ? playerIndex : undefined"
                         :playerUserName="index === playerIndex ? playerNames[0] : undefined "
                         :playerOneButtonPressed="index === playerIndex ? playerOneButtonPressed : undefined"
@@ -47,6 +50,7 @@
 			return{
 				gameOver: false,
 				boardState:[
+					1,0,0,0,0,0,0,0,0,0,
 					0,0,0,0,0,0,0,0,0,0,
 					0,0,0,0,0,0,0,0,0,0,
 					0,0,0,0,0,0,0,0,0,0,
@@ -55,8 +59,7 @@
 					0,0,0,0,0,0,0,0,0,0,
 					0,0,0,0,0,0,0,0,0,0,
 					0,0,0,0,0,0,0,0,0,0,
-					0,0,0,0,0,0,0,0,0,0,
-					0,0,0,0,0,0,0,0,0,0,
+					0,0,0,0,0,0,0,0,0,100,
 				],
 				previousPieceState: 0,
 				columnCount: 10,
@@ -110,18 +113,18 @@
 					'fire': 'dry',
 					'dry': 'wet',
 				},
-				socket: io('https://stark-thicket-52069.herokuapp.com/', {
-					query: {
-						roomId: this.roomId,
-                        mapId: this.selectedMap,
-                    }
-                }),
-                // socket: io('http://localhost:4000/', {
-                //     query: {
-                //         roomId: this.roomId,
+				// socket: io('https://stark-thicket-52069.herokuapp.com/', {
+				// 	query: {
+				// 		roomId: this.roomId,
                 //         mapId: this.selectedMap,
                 //     }
                 // }),
+                socket: io('http://localhost:4000/', {
+                    query: {
+                        roomId: this.roomId,
+                        mapId: this.selectedMap,
+                    }
+                }),
 				playerUserName: '',
 				users:[],
                 playerNames: [],
@@ -135,6 +138,11 @@
                 hasGivenRematchCount: false,
                 playerOneButtonPressed: 'down',
                 playerTwoButtonPressed: 'up',
+				fightCountDownSoundEffect: new Audio(require('../assets/321Fighting.mp3')),
+                fightCountDownPlayed: false,
+				playerOneStepSoundEffect: new Audio(require('../assets/Step1.wav')),
+				playerTwoStepSoundEffect: new Audio(require('../assets/Step2.wav')),
+                playerHitSoundEffect: new Audio(require('../assets/oof1.wav'))
 			}
 		},
 		computed:{
@@ -194,15 +202,27 @@
 		},
 		watch:{
 			playerLives(){
+				this.playerHitSoundEffect.volume = Math.random() / 2;
+                this.playerHitSoundEffect.play();
+
 				if(this.playerLives <= 0){
 					return this.gameOver = true;
 				}
 			},
 			enemyLives(){
+				this.playerHitSoundEffect.volume = Math.random() / 2;
+				this.playerHitSoundEffect.play();
+
 				if(this.enemyLives <= 0){
 					return this.gameOver = true;
 				}
-			}
+			},
+			users(){
+				if(this.users.length === 2 && this.fightCountDownPlayed === false){
+                    this.fightCountDownSoundEffect.play();
+                    this.fightCountDownPlayed = true;
+                }
+            }
 		},
 		methods:{
 		    rematch(){
@@ -275,7 +295,116 @@
 
                 this.boardState = data.matchBoard;
             },
+            calculateMouseMovement(clickedIndex, playerIndex){
+		    	console.log(clickedIndex, playerIndex)
+
+                if(this.boardState[playerIndex] === 1 && this.playerStatus === 'charging'){
+
+                	return this.seeIfPlayerInClickedColumn(clickedIndex, playerIndex)
+
+                } else if (this.boardState[playerIndex] === 100 && this.enemyStatus === 'charging'){
+
+	                return this.seeIfPlayerInClickedColumn(clickedIndex, playerIndex)
+
+                }
+
+
+                if(clickedIndex - 1 === playerIndex){
+                	let eventObject = {key: 'd', keyCode: 68}
+                	this.handleKeyDownEvent(eventObject)
+                	console.log('the user wants to move right')
+                }
+
+                if(clickedIndex + 1 === playerIndex){
+	                let eventObject = {key: 'a', keyCode: 65}
+	                this.handleKeyDownEvent(eventObject)
+                	console.log('the user wants to move left')
+                }
+
+                if(clickedIndex - 10 === playerIndex){
+	                let eventObject = {key: 's', keyCode: 83}
+	                this.handleKeyDownEvent(eventObject)
+                	console.log('the player wants to move down')
+                }
+
+                if(clickedIndex + 10 === playerIndex) {
+	                let eventObject = {key: 'w', keyCode: 87}
+	                this.handleKeyDownEvent(eventObject)
+                	console.log('the player wants to move up')
+                }
+            },
+            seeIfPlayerInClickedColumn(clickedIndex, playerIndex){
+                //check vertical
+                //find number of tiles up and down
+                let trackingNumUpwards = clickedIndex - 10;
+                let trackingNumDownwards = clickedIndex + 10;
+
+                this.clickedVerticalAttackCheck(clickedIndex, playerIndex, trackingNumUpwards, trackingNumDownwards)
+
+		        //check horizontal
+                //find number of tiles left and right
+                let numToSubtract = clickedIndex % 10;
+                let numToAdd = this.rowCount - numToSubtract;
+
+                let clickedRowEnd = clickedIndex + numToAdd;
+                let clickedRowStart = clickedIndex - numToSubtract;
+
+                this.clickedHorizontalAttackCheck(clickedIndex, playerIndex, clickedRowStart, clickedRowEnd)
+
+	            console.log(numToAdd, numToSubtract, clickedRowEnd, clickedRowStart)
+            },
+            clickedHorizontalAttackCheck(clickedIndex, playerIndex, clickedRowStart, clickedRowEnd){
+	            for(let i = clickedRowStart; i < clickedIndex; i++){
+		            console.log(i)
+		            if(i === playerIndex){
+			            console.log('we are attacking')
+			            let eventObject = {key: 'd', keyCode: 68, timeStamp: performance.now()}
+			            this.handleKeyDownEvent(eventObject)
+			            break;
+		            }
+	            }
+
+	            for(let i = clickedRowEnd; i > clickedIndex; i--){
+		            console.log(i)
+		            if(i === playerIndex){
+			            console.log('we are attacking')
+			            let eventObject = {key: 'd', keyCode: 68, timeStamp: performance.now()}
+			            this.handleKeyDownEvent(eventObject)
+			            break;
+		            }
+	            }
+            },
+            clickedVerticalAttackCheck(clickedIndex, playerIndex, trackingNumUpwards, trackingNumDownwards){
+		        if(trackingNumUpwards === playerIndex){
+			        let eventObject = {key: 'w', keyCode: 87, timeStamp: performance.now()}
+			        return this.handleKeyDownEvent(eventObject)
+                } else if (trackingNumDownwards === playerIndex) {
+			        let eventObject = {key: 'w', keyCode: 87, timeStamp: performance.now()}
+			        return this.handleKeyDownEvent(eventObject)
+                }
+
+		        while(trackingNumUpwards > 0){
+			        console.log(trackingNumUpwards)
+		        	trackingNumUpwards = trackingNumUpwards - 10;
+                    if(trackingNumUpwards === playerIndex){
+	                    let eventObject = {key: 'w', keyCode: 87, timeStamp: performance.now()}
+                    	return this.handleKeyDownEvent(eventObject)
+                    }
+                }
+
+		        while(trackingNumDownwards < 100){
+		        	console.log(trackingNumDownwards)
+		        	trackingNumDownwards = trackingNumDownwards + 10;
+		        	if(trackingNumDownwards === playerIndex){
+				        let eventObject = {key: 'w', keyCode: 87, timeStamp: performance.now()}
+				        return this.handleKeyDownEvent(eventObject)
+                    }
+                }
+
+            },
 			handleKeyDownEvent(e) {
+		    	console.log(e.timeStamp)
+
 				if(this.characterId === this.users[0]){
 					if(this.playerStatus === 'melee' || this.playerStatus === 'melee cooldown') {
                         return console.log('you are in the middle of a melee attack')
@@ -317,6 +446,8 @@
 				let indexString = this.characterId === this.users[0] ? 'playerIndex' : 'enemyIndex'
                 let playerState = this.characterId === this.users[0] ? 1 : 100
                 console.log(indexString, this.characterId, this.users[0])
+
+                this.playStepSound(playerState)
 
 				if(this.keyCodes[e.keyCode] === 'right') {
 					console.log('right')
@@ -728,6 +859,17 @@
 	            this.socket.emit('disconnectFromRoom', this.characterId === this.users[0] ? 1 : 100 )
 	            window.removeEventListener('keydown', this.handleKeyDownEventListener);
 	            window.removeEventListener('keyup', this.handleKeyUpEventListener);
+            },
+            playStepSound(player){
+		    	if(player === 1){
+		    		this.playerOneStepSoundEffect.time = 0;
+				    this.playerOneStepSoundEffect.volume = Math.random() / 3;
+		    		this.playerOneStepSoundEffect.play();
+                } else {
+				    this.playerTwoStepSoundEffect.time = 0;
+				    this.playerOneStepSoundEffect.volume = Math.random() / 3;
+				    this.playerTwoStepSoundEffect.play();
+                }
             }
 		},
 		created(){
@@ -735,10 +877,28 @@
             this.joinServer();
             console.log('we are joining the server', this.characterId, this.roomId, this.selectedMap);
 
+            this.fightCountDownSoundEffect.loop = false;
+            this.fightCountDownSoundEffect.addEventListener('ended', () => {
+            	this.fightCountDownSoundEffect.time = 0;
+            	this.fightCountDownSoundEffect.pause();
+            }, false)
+            this.playerOneStepSoundEffect.loop = false;
+            this.playerTwoStepSoundEffect.loop = false;
+            this.playerHitSoundEffect.loop = false;
+
 			window.addEventListener('beforeunload', this.exitWindow)
 			window.addEventListener('keydown', this.handleKeyDownListener)
 			// window.addEventListener('keyup', this.handleKeyUpListener)
 		},
+        mounted(){
+		    document.getElementById('multiplayer-board').addEventListener('auxclick', (e) => {
+		    	if(`${e.which}${e.button}` === '32') {
+		    		let eventObject = {key: 'v', timeStamp: e.timeStamp}
+		    		return this.handleKeyDownListener(eventObject);
+			    }
+
+            })
+        },
 		beforeDestroy(){
 			console.log('I am being disconnected dude', this.characterId === this.users[0] ? 1 : 100)
 			this.socket.emit('disconnectFromRoom', this.characterId === this.users[0] ? 1 : 100 )
@@ -760,6 +920,10 @@
         background-size: 400% 400%;
         animation: gradient 10s ease infinite;
         transition: 0.2s ease;
+    }
+
+    .board-piece:hover{
+        opacity: 0.5;
     }
 
     @keyframes gradient {
