@@ -3,7 +3,7 @@
         <div :style="titleStyle">
             <div :style="titleSoundCloudStyle"></div>
             <div :style="titleStardumStyle"></div>
-            <div :style="titleRoyaleStyle"></div>
+            <div :style="titleRoyaleStyle" class="floating-text"></div>
         </div>
         <div class="local-btn" :style="buttonStyle" @click="goToLocal()">
             <h1 class="blinking-h1" :style="h1Style"> LOCAL </h1>
@@ -87,7 +87,7 @@
 			        backgroundImage: `url(${require('../assets/INTRO-sprite-royale.png')})`,
 			        zIndex: 1,
 			        transform: 'translateX(120px) translateY(-210px) scale(0.55)',
-			        filter: 'drop-shadow(rgb(306, 209, 65) 0px 0px 50px)'
+			        filter: 'drop-shadow(rgb(306, 209, 65) 0px 0px 50px)',
 		        }
 	        }
         },
@@ -148,5 +148,21 @@
 
 .online-btn:hover{
     transform: translateX(20px);
+}
+
+.floating-text{
+    animation: float 4s ease-in-out infinite;
+}
+
+@keyframes float {
+    0% {
+        transform: translateX(120px) translateY(-210px) scale(0.55);
+    }
+    50% {
+        transform: translateX(120px) translateY(-220px) scale(0.55);
+    }
+    100% {
+        transform: translateX(120px) translateY(-210px) scale(0.55);
+    }
 }
 </style>

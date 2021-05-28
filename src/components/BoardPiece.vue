@@ -77,7 +77,7 @@
                 },
                 backgroundSprite:{
                     0: `url(${require('../assets/background-tile.png')})`,
-                    10: `url(${require('../assets/LASER-Tile-1.png')})`,
+                    10: `url(${require('../assets/LASER-Tile-1-lighting.png')})`,
                     11: `url(${require('../assets/LASER-Vertical.png')})`,
                     12: `url(${require('../assets/LASER-melee-tile.png')}`
                 },
@@ -182,6 +182,13 @@
 			    	return this.playerSprite[this.username]
                 } else {
 			    	return this.backgroundSprite[this.state]
+                }
+            },
+            filter(){
+			    if(this.state === 10 || this.state === 11){
+			    	return 'drop-shadow(0px 0px 2px #f53333)';
+                } else {
+			        return 'none';
                 }
             },
 			pieceId(){

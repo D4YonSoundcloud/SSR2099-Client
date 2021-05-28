@@ -113,18 +113,18 @@
 					'fire': 'dry',
 					'dry': 'wet',
 				},
-				// socket: io('https://stark-thicket-52069.herokuapp.com/', {
-				// 	query: {
-				// 		roomId: this.roomId,
-                //         mapId: this.selectedMap,
-                //     }
-                // }),
-                socket: io('http://localhost:4000/', {
-                    query: {
-                        roomId: this.roomId,
+				socket: io('https://stark-thicket-52069.herokuapp.com/', {
+					query: {
+						roomId: this.roomId,
                         mapId: this.selectedMap,
                     }
                 }),
+                // socket: io('http://localhost:4000/', {
+                //     query: {
+                //         roomId: this.roomId,
+                //         mapId: this.selectedMap,
+                //     }
+                // }),
 				playerUserName: '',
 				users:[],
                 playerNames: [],
@@ -272,7 +272,6 @@
                 })
             },
 			assignPlayerInfo(data){
-
 				this.users = data.matchIDs;
 				this.playerNames = data.matchUserName;
 
@@ -292,8 +291,11 @@
 
 				// this.boardState[this.playerIndex] = this.playerState
 				// this.boardState[this.enemyIndex] = this.enemyState
-
-                this.boardState = data.matchBoard;
+                if(this.boardState==''+data.matchBoard){
+                	return console.log('the boards already match')
+                } else {
+                    this.boardState = data.matchBoard;
+                }
             },
             calculateMouseMovement(clickedIndex, playerIndex){
 		    	console.log(clickedIndex, playerIndex)
@@ -783,7 +785,7 @@
             handleKeyDownListener(e){
 	            if(this.gameOver === true) return
 
-	            if(e.key === 'f' || e.key === 'v' || e.key === '0') {
+	            if(e.key === 'f' || e.key === '0') {
 		            if(this.characterId === this.users[0]){
 			            this.playerStatus = 'charging'
                         this.playerChargeTimeStart = e.timeStamp;
@@ -795,7 +797,7 @@
 		            }
 	            }
 
-	            if(e.key === 'q' || e.key === 'Q') {
+	            if(e.shiftKey === true || e.key === 'q' || e.key === 'Q') {
 	            	console.log('we are doing a melee attack')
 		            if(this.characterId === this.users[0]){
                         if(this.playerStatus === 'charging' || this.playerStatus === 'attacking' ||
@@ -812,7 +814,7 @@
 		            }
                 }
 
-                if(e.key === 'e' || e.key === 'E') {
+                if(e.key === 'v' || e.key === 'V' || e.key === 'e' || e.key === 'E') {
                     console.log('we are doing a melee X attack')
                     if(this.characterId === this.users[0]){
                         if(this.playerStatus === 'charging' || this.playerStatus === 'attacking' ||
@@ -893,7 +895,7 @@
         mounted(){
 		    document.getElementById('multiplayer-board').addEventListener('auxclick', (e) => {
 		    	if(`${e.which}${e.button}` === '32') {
-		    		let eventObject = {key: 'v', timeStamp: e.timeStamp}
+		    		let eventObject = {key: 'f', timeStamp: e.timeStamp}
 		    		return this.handleKeyDownListener(eventObject);
 			    }
 
@@ -923,7 +925,7 @@
     }
 
     .board-piece:hover{
-        opacity: 0.5;
+        opacity: 0.8;
     }
 
     @keyframes gradient {
