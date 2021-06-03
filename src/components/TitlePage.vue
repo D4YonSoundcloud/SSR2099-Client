@@ -11,6 +11,9 @@
         <div class="online-btn" :style="buttonStyle" @click="goToMultiplayer()">
             <h1 class="blinking-h1" :style="h1Style"> ONLINE </h1>
         </div>
+        <div class="online-btn" :style="buttonStyle" @click="goToTimeTrial()">
+            <h1 class="blinking-h1" :style="h1Style"> TIME-TRIALS </h1>
+        </div>
     </div>
 </template>
 
@@ -97,6 +100,9 @@
             },
             goToMultiplayer(){
                 this.$router.push('/multiplayer')
+            },
+            goToTimeTrial(){
+			    this.$router.push('/time-trials')
             }
         },
         created(){

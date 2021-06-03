@@ -24,28 +24,28 @@
                     3: 'lightblue',
                     10: 'rgba(0,0,0,0)',
                     11: 'rgba(0,0,0,0)',
-                    25: 'rgb(24,24,24)',
+                    25: 'rgba(0,0,0,0)',
                     100: 'rgba(0,0,0,0)',
                 },
                 boardPieceWidthLookUpTable:{
-                    0: this.pieceWidth * 0.95,
+                    0: this.pieceWidth * 1,
                     1: this.pieceWidth * 0.95,
                     2: this.pieceWidth * 0.95,
                     3: this.pieceWidth * 0.95,
                     10: this.pieceWidth * 1,
                     11: this.pieceWidth * 1,
-                    25: this.pieceWidth * 0.95,
-                    100: this.pieceWidth * 0.95,
+                    25: this.pieceWidth * 1,
+                    100: this.pieceWidth * 1,
                 },
 				boardPieceHeightLookUpTable:{
-					0: this.pieceHeight * 0.95,
+					0: this.pieceHeight * 1,
 					1: this.pieceHeight * 0.95,
 					2: this.pieceHeight * 0.95,
 					3: this.pieceHeight * 0.95,
 					10: this.pieceHeight * 1,
                     11: this.pieceHeight * 1,
-                    100: this.pieceWidth * 0.95,
-					25: this.pieceWidth * 0.95,
+                    100: this.pieceWidth * 1,
+					25: this.pieceWidth * 1,
 				},
                 boardPieceBorderRadiusLookUpTable:{
                     0: 5,
@@ -58,7 +58,7 @@
                     100: 50
                 },
 				boardPieceBorderRadiusLookUpTableOuter:{
-					0: 10,
+					0: 0,
 					1: 10,
 					2: 10,
 					3: 10,
@@ -67,6 +67,16 @@
 					25: 0,
 					100: 10,
 				},
+                transformOriginLookUpTable:{
+                    0: 'center',
+                    1: 'center',
+                    2: 'center',
+                    3: 'center',
+                    10: 'center',
+                    11: 'center',
+                    25: 'bottom',
+                    100: 'center',
+                },
                 playerSprite:{
                     'D4Y': `url(${require('../assets/D4Y-idle-sprite.png')})`,
                     'KABBAGE': `url(${require('../assets/KABBAGE-idle-sprite.png')})`,
@@ -79,7 +89,8 @@
                     0: `url(${require('../assets/background-tile.png')})`,
                     10: `url(${require('../assets/LASER-Tile-1-lighting.png')})`,
                     11: `url(${require('../assets/LASER-Vertical.png')})`,
-                    12: `url(${require('../assets/LASER-melee-tile.png')}`
+                    12: `url(${require('../assets/LASER-melee-tile.png')}`,
+                    25: `url(${require('../assets/WALL-TILE.png')})`
                 },
                 backgroundSpriteTransform:{
                     0: '',
@@ -136,7 +147,8 @@
                     boxShadow: this.boxShadow,
                     backgroundImage: this.backgroundImage,
                     transform: this.transform,
-                    transformOrigin: 'center',
+                    transformOrigin: this.transformOriginLookUpTable[this.state],
+                    backgroundSize: this.state === 25 ? '100% 100%' : ''
 	            }
             },
             boardPieceEyesStyle(){
@@ -162,7 +174,7 @@
                 }
             },
             boxShadow(){
-			    if(this.state === 1 || this.state === 100 || this.state === 11 || this.state === 10) {
+			    if(this.state === 1 || this.state === 100 || this.state === 11 || this.state === 10 || this.state === 25 || this.state === 0) {
 			        return ''
                 } else {
 			        return '0 0 1px 1px rgba(97, 3, 104, 0.75)'
@@ -173,6 +185,8 @@
 			        return this.playerSpriteTransform[this.playerOneButtonPressed]
                 } else if ( this.state === 100 || this.playerTwoButtonPressed !== undefined) {
                     return this.playerSpriteTransform[this.playerTwoButtonPressed]
+                } else if ( this.state === 25) {
+                    return 'scaleY(2)'
                 } else {
 			        return this.backgroundSpriteTransform[this.state];
                 }

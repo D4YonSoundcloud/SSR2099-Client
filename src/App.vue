@@ -4,6 +4,7 @@
           <router-link to="/" style="margin-left: 8px">home</router-link>
           <router-link to="/local" style="margin-left: 8px">local</router-link>
           <router-link to="/multiplayer" style="margin-left: 8px">online</router-link>
+          <router-link to="/time-trials" style="margin-left: 8px">time-trials</router-link>
       </div>
       <router-view/>
       <div class="bottom-info" :style="bottomInfoContainer">

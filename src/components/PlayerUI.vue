@@ -91,7 +91,7 @@
 			            color: 'white',
 			            transform: 'translateY(-10px)',
 			            borderRadius: '1.25%',
-			            boxShadow: '0 0 20px 0 #bf05bf',
+			            boxShadow: 'rgb(152 6 162) 0px 0px 200px 0px inset',
                         transition: 0.2 + 's ease'
 		            }
                 }

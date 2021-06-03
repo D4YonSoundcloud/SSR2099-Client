@@ -11,6 +11,7 @@
                         :enemyIndex="index === enemyIndex ? enemyIndex : undefined" :enemyStatus="enemyStatus"
                         :pieceHeight="boardPieceHeightAndWidth">
             </BoardPiece>
+            <div class="board-test"></div>
             <h1 v-if="gameOver === true" style="margin-top: 16px">
                 Game Over!
                 {{playerLivesStore < 1 ? 'Player 2' : 'Player 1'}}
@@ -580,5 +581,14 @@
         {
             background-position: 0 50%;
         }
+    }
+
+    .board-test{
+        position: absolute;
+        width: 550px;
+        height: 550px;
+        transform: translate(-25px, -25px);
+        transform-origin: center;
+        background-image: url("../assets/board-background-main.png")
     }
 </style>
