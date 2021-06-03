@@ -923,6 +923,6 @@
         height: 550px;
         transform: translate(-25px, -25px);
         transform-origin: center;
-        background-image: url("../assets/board-background-main.png")
+        background-image: url("../assets/board-background-main-2.png")
     }
 </style>

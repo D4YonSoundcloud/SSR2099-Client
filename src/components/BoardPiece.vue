@@ -25,47 +25,52 @@
                     10: 'rgba(0,0,0,0)',
                     11: 'rgba(0,0,0,0)',
                     25: 'rgba(0,0,0,0)',
+                    99: 'rgba(0,0,0,0)',
                     100: 'rgba(0,0,0,0)',
                 },
                 boardPieceWidthLookUpTable:{
                     0: this.pieceWidth * 1,
-                    1: this.pieceWidth * 0.95,
+                    1: this.pieceWidth * 1,
                     2: this.pieceWidth * 0.95,
                     3: this.pieceWidth * 0.95,
                     10: this.pieceWidth * 1,
                     11: this.pieceWidth * 1,
                     25: this.pieceWidth * 1,
+                    99: this.pieceWidth * 1,
                     100: this.pieceWidth * 1,
                 },
 				boardPieceHeightLookUpTable:{
 					0: this.pieceHeight * 1,
-					1: this.pieceHeight * 0.95,
+					1: this.pieceHeight * 1,
 					2: this.pieceHeight * 0.95,
 					3: this.pieceHeight * 0.95,
 					10: this.pieceHeight * 1,
                     11: this.pieceHeight * 1,
-                    100: this.pieceWidth * 1,
 					25: this.pieceWidth * 1,
+					99: this.pieceWidth * 1,
+                    100: this.pieceWidth * 1,
 				},
                 boardPieceBorderRadiusLookUpTable:{
                     0: 5,
-                    1: 2.5,
+                    1: 0,
                     2: 2.5,
                     3: 2.5,
                     10: 0,
                     11: 0,
                     25: 0,
-                    100: 50
+                    99: 0,
+                    100: 0,
                 },
 				boardPieceBorderRadiusLookUpTableOuter:{
 					0: 0,
-					1: 10,
+					1: 0,
 					2: 10,
 					3: 10,
 					10: 0,
 					11: 0,
 					25: 0,
-					100: 10,
+					99: 0,
+					100: 0,
 				},
                 transformOriginLookUpTable:{
                     0: 'center',
@@ -75,10 +80,11 @@
                     10: 'center',
                     11: 'center',
                     25: 'bottom',
+                    99: 'center',
                     100: 'center',
                 },
                 playerSprite:{
-                    'D4Y': `url(${require('../assets/D4Y-idle-sprite.png')})`,
+                    'D4Y': `url(${require('../assets/D4Y-idle-sprite-export.png')})`,
                     'KABBAGE': `url(${require('../assets/KABBAGE-idle-sprite.png')})`,
                     'GOOB': `url(${require('../assets/GOOB-idle-sprite.png')})`,
                     'TATHARDES': `url(${require('../assets/GOOB-idle-sprite.png')})`,
@@ -90,7 +96,8 @@
                     10: `url(${require('../assets/LASER-Tile-1-lighting.png')})`,
                     11: `url(${require('../assets/LASER-Vertical.png')})`,
                     12: `url(${require('../assets/LASER-melee-tile.png')}`,
-                    25: `url(${require('../assets/WALL-TILE.png')})`
+                    25: `url(${require('../assets/WALL-TILE-small.png')})`,
+                    99: `url(${require('../assets/TIME-TRIAL-FINISH-sprite.png')})`
                 },
                 backgroundSpriteTransform:{
                     0: '',
@@ -101,10 +108,10 @@
                     'D4Y': `url(${require('../assets/D4Y-eyes-sprite.png')})`
                 },
                 playerSpriteTransform:{
-                    'right': 'translateX(-5px) rotateZ(270deg)',
-                    'down': 'translateY(-2px) rotateZ(0deg)',
-                    'left': 'translateX(3px) rotateZ(90deg)',
-                    'up': 'translateY(5px) rotateZ(180deg)'
+                    'right': 'rotateZ(270deg)',
+                    'down': 'rotateZ(0deg)',
+                    'left': 'rotateZ(90deg)',
+                    'up': 'rotateZ(180deg)'
                 },
                 playerStatusText:{
                     'normal': 'N',
@@ -127,7 +134,7 @@
 				return {
 					height: this.pieceHeight + 'px',
 					width: this.pieceWidth + 'px',
-					border: this.state === 0 ? '1px solid #44036b' : '',
+					// border: this.state === 0 ? '1px solid #44036b' : '',
                     backgroundColor: '#501177',
                     display: 'flex',
                     justifyContent: 'center',

@@ -11,6 +11,7 @@
                 <h1 @click="timeTrialSelected = 'time-trial III'">TIME-TRIAL III</h1>
             </button>
         </div>
+
         <div class="board" :style="timeTrialBoardStyle" v-if="timeTrialSelected !== undefined">
             <BoardPiece :pieceIndex="index"  v-for="(piece, index) in boardState" :key="index" class="board-piece"
                         @click.native="calculateMouseMovement(index, playerIndex)"
@@ -22,8 +23,17 @@
                         :pieceWidth="50" :playerStatus="index = playerIndex ? 'normal' : 'undefined'"
                         :pieceHeight="50">
             </BoardPiece>
+
             <div class="board-background"></div>
+
+            <div class="" v-if="timeTrialStarted === true && timeTrialFinished === false" :style="timeTrialTimeStyle">
+                <h1 :style="h1Style"> {{timeTrialTimerTime}} </h1>
+            </div>
+            <div class="" v-if="timeTrialFinished === true" :style="timeTrialTimeStyle">
+                <h1 :style="h1Style"> {{ timeTrialTime }} </h1>
+            </div>
         </div>
+
     </div>
 </template>
 
@@ -101,6 +111,9 @@
                 timeTrialStartTime: undefined,
                 timeTrialEndTime: undefined,
                 timeTrialTime: undefined,
+                timeTrialTimerTime: undefined,
+                timeTrialStarted: false,
+                timeTrialFinished: false,
                 boardHeight: 500,
                 boardWidth: 500,
                 playerOneButtonPressed: '',
@@ -114,6 +127,7 @@
                     'leftWall': -9,
                 },
                 playerStatus: 'normal',
+	            playerOneStepSoundEffect: new Audio(require('../assets/Step1.wav')),
             }
         },
         computed:{
@@ -166,11 +180,21 @@
                     boxShadow: 'rgb(90 5 90) 0px 0px 100px 0',
                 }
             },
-            boardStyle(){
-                return{
-
+            timeTrialTimeStyle(){
+                return {
+                	color: 'white',
+                    height: 50 + 'px',
+                    width: 100 + '%',
+                    marginTop: 32 + 'px',
                 }
-            }
+            },
+            h1Style(){
+	            return {
+		            width: 100 + '%',
+		            height: 100 + '%',
+		            fontFamily: "'Viga', sans-serif",
+	            }
+            },
         },
         methods:{
             calculateMouseMovement(clickedIndex, playerIndex){
@@ -212,6 +236,16 @@
                 }
             },
             handleKeyDownListener(e){
+            	if(this.timeTrialFinished === true) return
+
+            	if(this.timeTrialStarted === false){
+            		this.timeTrialStartTime = performance.now()
+            		this.timeTrialStarted = true;
+            		this.animateTimer()
+                    console.log('time trial started', this.timeTrialStarted)
+                }
+
+            	console.log(this.timeTrialTimerTime)
                 return this.handleKeyDownEvent(e);
             },
             handleKeyDownEvent(e) {
@@ -234,21 +268,43 @@
                 }
             },
             handleRightKey(currentIndex, playerState, eventKeyCode){
-                if ((currentIndex + 1)%this.columnCount === 0) {
-                    if(this.boardState[currentIndex - (this.columnCount - 1)] === 25 ) return this.playStepSound(playerState)
-                    if(this.boardState[currentIndex - (this.columnCount - 1)] === 1 || this.boardState[currentIndex - (this.columnCount - 1)] === 100) return this.playStepSound(playerState)
+                if ((currentIndex + 1)%10 === 0) {
+                    if(this.boardState[currentIndex - (10 - 1)] === 25 ) return this.playStepSound(playerState)
+                    if(this.boardState[currentIndex - (10 - 1)] === 99) {
+                    	this.timeTrialFinished = true
+                    	this.timeTrialEndTime = performance.now()
+                        this.timeTrialTime = ((this.timeTrialEndTime - this.timeTrialStartTime) * 0.001);
+                    	return this.timeTrialTime = Math.round((this.timeTrialTime + Number.EPSILON) * 1000) / 1000;
+                    }
                 } else {
                     if(this.boardState[currentIndex + 1] === 25) return this.playStepSound(playerState)
-                    if(this.boardState[currentIndex + 1] === 1 || this.boardState[currentIndex + 1] === 100) return this.playStepSound(playerState)
+                    if(this.boardState[currentIndex + 1] === 99) {
+	                    this.timeTrialFinished = true
+	                    this.timeTrialEndTime = performance.now()
+	                    this.timeTrialTime = ((this.timeTrialEndTime - this.timeTrialStartTime) * 0.001);
+	                    return this.timeTrialTime = Math.round((this.timeTrialTime + Number.EPSILON) * 1000) / 1000;
+                    }
+	                this.swap(currentIndex + 1, currentIndex + 1, 'right', eventKeyCode)
                 }
             },
             handleLeftKey(currentIndex, playerState, eventKeyCode){
-                if ((currentIndex + 1)%this.columnCount === 1) {
-                    if(this.boardState[currentIndex - 1] === 25) return this.playStepSound(playerState)
-                    if(this.boardState[currentIndex + (this.columnCount - 1)] === 1 || this.boardState[currentIndex + (this.columnCount - 1)] === 100) return
+                if ((currentIndex + 1)%10 === 1) {
+                    if(this.boardState[currentIndex + (10 - 1)] === 25) return this.playStepSound(playerState)
+                    if(this.boardState[currentIndex + (10 - 1)] === 99)  {
+	                    this.timeTrialFinished = true
+	                    this.timeTrialEndTime = performance.now()
+	                    this.timeTrialTime = ((this.timeTrialEndTime - this.timeTrialStartTime) * 0.001);
+	                    return this.timeTrialTime = Math.round((this.timeTrialTime + Number.EPSILON) * 1000) / 1000;
+                    }
                 } else {
                     if(this.boardState[currentIndex - 1] === 25) return this.playStepSound(playerState)
-                    if(this.boardState[currentIndex - 1] === 1 || this.boardState[currentIndex - 1] === 100) return console.log('this is a wall')
+                    if(this.boardState[currentIndex - 1] === 99) {
+	                    this.timeTrialFinished = true
+	                    this.timeTrialEndTime = performance.now()
+	                    this.timeTrialTime = ((this.timeTrialEndTime - this.timeTrialStartTime) * 0.001);
+	                    return this.timeTrialTime = Math.round((this.timeTrialTime + Number.EPSILON) * 1000) / 1000;
+                    }
+	                this.swap(currentIndex - 1, currentIndex - 1, 'left', eventKeyCode)
                 }
             },
             handleUpKey(currentIndex, indexString, eventKeyCode){
@@ -262,7 +318,12 @@
                     let temp = this.boardState[lastRowStart + currentIndex]
 
                     if(temp === 25) return console.log('there is a wall here')
-                    if(temp === 99) return this.timeTrialEndTime = performance.now()
+                    if(temp === 99) {
+	                    this.timeTrialFinished = true
+	                    this.timeTrialEndTime = performance.now()
+	                    this.timeTrialTime = ((this.timeTrialEndTime - this.timeTrialStartTime) * 0.001);
+	                    return this.timeTrialTime = Math.round((this.timeTrialTime + Number.EPSILON) * 1000) / 1000;
+                    }
 
                     if(this.playerKeyCodes.includes(eventKeyCode)){
                         this.playerIndex = lastRowStart + currentIndex;
@@ -276,8 +337,14 @@
                     this.boardState[playerIndex] = playerState
                     this.boardState[oldPlayerIndex] = temp;
                 } else {
-                    if(this.boardState[playerIndex - this.columnCount] === 25) return this.playStepSound(playerState)
-                    if(this.boardState[playerIndex - this.columnCount] === 99)  return this.timeTrialEndTime = performance.now()
+                    if(this.boardState[playerIndex - 10] === 25) return this.playStepSound()
+                    if(this.boardState[playerIndex - 10] === 99) {
+	                    this.timeTrialFinished = true
+	                    this.timeTrialEndTime = performance.now()
+	                    this.timeTrialTime = ((this.timeTrialEndTime - this.timeTrialStartTime) * 0.001);
+	                    return this.timeTrialTime = Math.round((this.timeTrialTime + Number.EPSILON) * 1000) / 1000;
+                    }
+
                     this.swap(currentIndex - 10, playerIndex - 10, 'up', eventKeyCode)
                 }
             },
@@ -289,11 +356,23 @@
                     let difference = currentIndex - lastRowStart
                     let temp = this.boardState[difference]
                     playerIndex = difference;
-                    if(temp === 25) return console.log('bruh')
-                    if(temp === 99 ) return this.timeTrialEndTime = performance.now()
+                    if(temp === 25) return this.playStepSound()
+                    if(temp === 99 ) {
+                    	console.log('finished')
+	                    this.timeTrialFinished = true
+	                    this.timeTrialEndTime = performance.now()
+	                    this.timeTrialTime = ((this.timeTrialEndTime - this.timeTrialStartTime) * 0.001);
+	                    return this.timeTrialTime = Math.round((this.timeTrialTime + Number.EPSILON) * 1000) / 1000;
+                    }
                 } else {
-                    if(this.boardState[playerIndex + 10] === 25) return this.playStepSound(playerState)
-                    if(this.boardState[playerIndex + 10] === 99) return this.timeTrialEndTime = performance.now()
+                    if(this.boardState[playerIndex + 10] === 25) return this.playStepSound()
+                    if(this.boardState[playerIndex + 10] === 99) {
+	                    console.log('finished')
+	                    this.timeTrialFinished = true
+	                    this.timeTrialEndTime = performance.now()
+	                    this.timeTrialTime = ((this.timeTrialEndTime - this.timeTrialStartTime) * 0.001);
+	                    return this.timeTrialTime = Math.round((this.timeTrialTime + Number.EPSILON) * 1000) / 1000;
+                    }
 
                     this.swap(currentIndex + 10, playerIndex + 10, 'down')
                 }
@@ -312,16 +391,28 @@
                 //code for deciding if it is the 1st or 2nd player
                 this.playerIndex = newPlayerIndex;
                 this[indexString] = this.playerIndex;
-                this.boardState[this[indexString]] = this[playerState];
+                this.boardState[this[indexString]] = playerState
                 this.boardState[this[indexString] + this.swapLookUpTable[keyCode]] = temp;
 
-                // this.socket.emit('sendUpdatePlayerIndex', {
-                // 	player: this.characterId === this.users[0] ? 1 : 100,
-                //     index: this[indexString],
-                //     oldIndex: this[indexString] + this.swapLookUpTable[keyCode],
-                //     oldValue: temp,
-                // })
+                console.log(this.boardState);
             },
+	        playStepSound(){
+		        this.playerOneStepSoundEffect.time = 0;
+		        this.playerOneStepSoundEffect.volume = Math.random() * 0.3;
+		        this.playerOneStepSoundEffect.play();
+	        },
+            animateTimer(){
+	            if(this.timeTrialFinished === true){
+		            console.log('we are cancelling the animation')
+		            cancelAnimationFrame(this.animateTimer)
+                    return
+	            }
+
+            	this.timeTrialTimerTime = ((performance.now() - this.timeTrialStartTime) * 0.001);
+            	this.timeTrialTimerTime = Math.round((this.timeTrialTimerTime + Number.EPSILON) * 1000) / 1000;
+
+            	requestAnimationFrame(this.animateTimer)
+            }
         },
         created(){
             window.addEventListener('keydown', this.handleKeyDownListener)
@@ -346,7 +437,7 @@
         height: 550px;
         transform: translate(-25px, -25px);
         transform-origin: center;
-        background-image: url("../assets/board-background-main.png")
+        background-image: url("../assets/board-background-main-2.png")
     }
 
     @keyframes gradient {
