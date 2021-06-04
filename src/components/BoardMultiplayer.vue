@@ -418,6 +418,16 @@
 
             },
             handleKeyDownEvent(e) {
+	            if(this.characterId === this.users[0]){
+		            if(this.playerStatus === 'melee' || this.playerStatus === 'melee cooldown') {
+			            return console.log('you are in the middle of a melee attack')
+		            }
+	            } else if (this.characterId === this.users[1]){
+		            if(this.enemyStatus === 'melee' || this.enemyStatus === 'melee cooldown') {
+			            return console.log('you are in the middle of a melee attack')
+		            }
+	            }
+
                 if(this.playerStatus === 'attacking' || this.playerStatus === 'charging') {
 
                     this.playerChargeTimeEnd = e.timeStamp;
@@ -438,21 +448,27 @@
                     return this.handleAttack(e, true, this.enemyAttackDamage);
                 }
 
+	            let playerState = this.characterId === this.users[0] ? 1 : 100
+
                 if(this.keyCodes[e.keyCode] === 'right') {
                     this.buttonPressed = 'right';
                     console.log('right')
+	                this.socket.emit('sendPlayerInput', {player: playerState ,input: 'right'})
                     return this.handleRightKey(this.playerKeyCodes.includes(e.keyCode) ? this.playerIndex : this.enemyIndex, e.keyCode)
                 } else if(this.keyCodes[e.keyCode] === 'left') {
                     this.buttonPressed = 'left';
                     console.log('left')
+	                this.socket.emit('sendPlayerInput', {player: playerState ,input: 'left'})
                     return this.handleLeftKey(this.playerKeyCodes.includes(e.keyCode) ? this.playerIndex : this.enemyIndex, e.keyCode)
                 } else if(this.keyCodes[e.keyCode] === 'up') {
                     this.buttonPressed = 'up';
                     console.log('up')
+	                this.socket.emit('sendPlayerInput', {player: playerState ,input: 'up'})
                     return this.handleUpKey(this.playerKeyCodes.includes(e.keyCode) ? this.playerIndex : this.enemyIndex, e.keyCode)
                 } else if(this.keyCodes[e.keyCode] === 'down') {
                     this.buttonPressed = 'down';
                     console.log('down')
+	                this.socket.emit('sendPlayerInput', {player: playerState ,input: 'down'})
                     return this.handleDownKey(this.playerKeyCodes.includes(e.keyCode) ? this.playerIndex : this.enemyIndex, e.keyCode)
                 }
             },
