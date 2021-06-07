@@ -9,6 +9,7 @@
   "dependencies": {
     "core-js": "^3.6.5",
     "d3-scale": "^3.3.0",
+    "dotenv": "^10.0.0",
     "logrocket": "^1.2.0",
     "socket.io": "^4.1.1",
     "socket.io-client": "^4.1.1",
