@@ -114,18 +114,18 @@
 					'fire': 'dry',
 					'dry': 'wet',
 				},
-				// socket: io('https://stark-thicket-52069.herokuapp.com/', {
-				// 	query: {
-				// 		roomId: this.roomId,
-                //         mapId: this.selectedMap,
-                //     }
-                // }),
-                socket: io('http://localhost:4000/', {
-                    query: {
-                        roomId: this.roomId,
+				socket: io('https://stark-thicket-52069.herokuapp.com/', {
+					query: {
+						roomId: this.roomId,
                         mapId: this.selectedMap,
                     }
                 }),
+                // socket: io('http://localhost:4000/', {
+                //     query: {
+                //         roomId: this.roomId,
+                //         mapId: this.selectedMap,
+                //     }
+                // }),
 				playerUserName: '',
 				users:[],
                 playerNames: [],
@@ -834,7 +834,7 @@
             },
             playHorizontalLaserSound(){
 		        this.horizontalAttackSoundEffect.currentTime = 0;
-                this.horizontalAttackSoundEffect.volume = 0.33
+                this.horizontalAttackSoundEffect.volume = 0.03
                 this.horizontalAttackSoundEffect.play()
                 setTimeout(() => {
                     this.horizontalAttackSoundEffect.pause();
@@ -842,7 +842,7 @@
             },
             playerOtherPlayerHorizontalLaserSound(){
                 this.otherPlayerHorizontalAttackSoundEffect.currentTime = 0;
-                this.otherPlayerHorizontalAttackSoundEffect.volume = 0.33
+                this.otherPlayerHorizontalAttackSoundEffect.volume = 0.05
                 this.otherPlayerHorizontalAttackSoundEffect.play()
                 setTimeout(() => {
                     this.otherPlayerHorizontalAttackSoundEffect.pause();
@@ -850,12 +850,12 @@
             },
             playChargingSound(){
                 this.otherPlayerChargingSoundEffect.currentTime = 0;
-		        this.chargingSoundEffect.volume = 0.33
+		        this.chargingSoundEffect.volume = 0.15
                 this.chargingSoundEffect.play();
             },
             playerOtherPlayerChargingSound(){
 		        this.otherPlayerChargingSoundEffect.currentTime = 0;
-                this.otherPlayerChargingSoundEffect.volume = 0.33
+                this.otherPlayerChargingSoundEffect.volume = 0.20
                 this.otherPlayerChargingSoundEffect.play();
             }
 		},

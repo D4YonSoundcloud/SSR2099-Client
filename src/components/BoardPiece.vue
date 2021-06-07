@@ -24,7 +24,10 @@
                     3: 'lightblue',
                     10: 'rgba(0,0,0,0)',
                     11: 'rgba(0,0,0,0)',
+                    12: 'rgba(0,0,0,0)',
                     25: 'rgba(0,0,0,0)',
+                    26: 'rgba(0,0,0,0)',
+                    27: 'rgba(0,0,0,0)',
                     99: 'rgba(0,0,0,0)',
                     100: 'rgba(0,0,0,0)',
                 },
@@ -35,7 +38,10 @@
                     3: this.pieceWidth * 0.95,
                     10: this.pieceWidth * 1,
                     11: this.pieceWidth * 1,
+                    12: this.pieceWidth * 1,
                     25: this.pieceWidth * 1,
+                    26: this.pieceWidth * 1,
+                    27: this.pieceWidth * 1,
                     99: this.pieceWidth * 1,
                     100: this.pieceWidth * 1,
                 },
@@ -46,7 +52,10 @@
 					3: this.pieceHeight * 0.95,
 					10: this.pieceHeight * 1,
                     11: this.pieceHeight * 1,
+                    12: this.pieceHeight * 1,
 					25: this.pieceWidth * 1,
+                    26: this.pieceWidth * 1,
+                    27: this.pieceWidth * 1,
 					99: this.pieceWidth * 1,
                     100: this.pieceWidth * 1,
 				},
@@ -57,7 +66,10 @@
                     3: 2.5,
                     10: 0,
                     11: 0,
+                    12: 0,
                     25: 0,
+                    26: 0,
+                    27: 0,
                     99: 0,
                     100: 0,
                 },
@@ -68,7 +80,10 @@
 					3: 10,
 					10: 0,
 					11: 0,
+					12: 0,
 					25: 0,
+                    26: 0,
+                    27: 0,
 					99: 0,
 					100: 0,
 				},
@@ -79,7 +94,10 @@
                     3: 'center',
                     10: 'center',
                     11: 'center',
+                    12: 'center',
                     25: 'bottom',
+                    26: 'bottom',
+                    27: 'bottom',
                     99: 'center',
                     100: 'center',
                 },
@@ -96,7 +114,9 @@
                     10: `url(${require('../assets/LASER-Tile-1-lighting.png')})`,
                     11: `url(${require('../assets/LASER-Vertical.png')})`,
                     12: `url(${require('../assets/LASER-melee-tile.png')}`,
-                    25: `url(${require('../assets/WALL-TILE-small.png')})`,
+                    25: `url(${require('../assets/WALL-TILE.png')})`,
+                    26: `url(${require('../assets/WALL-TILE-small-half.png')})`,
+                    27: `url(${require('../assets/WALL-TILE-top.png')})`,
                     99: `url(${require('../assets/TIME-TRIAL-FINISH-sprite.png')})`
                 },
                 backgroundSpriteTransform:{
@@ -151,11 +171,12 @@
 		            justifyContent: 'center',
 		            alignItems: 'center',
 		            borderRadius: this.boardPieceBorderRadiusLookUpTable[this.state] + '%',
-                    boxShadow: this.boxShadow,
+                    // boxShadow: this.boxShadow,
                     backgroundImage: this.backgroundImage,
                     transform: this.transform,
                     transformOrigin: this.transformOriginLookUpTable[this.state],
-                    backgroundSize: this.state === 25 ? '100% 100%' : ''
+                    backgroundSize: (this.state === 25 || this.state === 27) ? '100% 100%' : '',
+                    zIndex: 100,
 	            }
             },
             boardPieceEyesStyle(){
@@ -181,7 +202,8 @@
                 }
             },
             boxShadow(){
-			    if(this.state === 1 || this.state === 100 || this.state === 11 || this.state === 10 || this.state === 25 || this.state === 0) {
+			    if(this.state === 1 || this.state === 100 || this.state === 11 || this.state === 10
+                    || this.state === 25 || this.state === 26 || this.state === 0  || this.state === 27) {
 			        return ''
                 } else {
 			        return '0 0 1px 1px rgba(97, 3, 104, 0.75)'
@@ -192,7 +214,7 @@
 			        return this.playerSpriteTransform[this.playerOneButtonPressed]
                 } else if ( this.state === 100 || this.playerTwoButtonPressed !== undefined) {
                     return this.playerSpriteTransform[this.playerTwoButtonPressed]
-                } else if ( this.state === 25) {
+                } else if ( this.state === 25 || this.state === 27) {
                     return 'scaleY(2)'
                 } else {
 			        return this.backgroundSpriteTransform[this.state];
