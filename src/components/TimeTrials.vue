@@ -16,6 +16,9 @@
             <button class="time-trial-button"  :style="timeTrialButtonStyle" @click="goToTimeTrial('time-trial-V', 0)" >
                 <h1>TIME-TRIAL V</h1>
             </button>
+            <button class="time-trial-button"  :style="timeTrialButtonStyle" @click="goToTimeTrial('time-trial-VI', 70)" >
+                <h1>TIME-TRIAL VI</h1>
+            </button>
             <button class="time-trial-button"  :style="timeTrialButtonStyle" @click="goToTimeTrial('time-trial-X', 1)" >
                 <h1>TIME-TRIAL X</h1>
             </button>
@@ -23,6 +26,7 @@
                 <h1>TIME-TRIAL ALL</h1>
             </button>
         </div>
+
         <div class="board" :style="timeTrialBoardStyle" v-if="timeTrialSelected !== undefined">
             <BoardPiece :pieceIndex="index"  v-for="(piece, index) in boardState" :key="index" class="board-piece"
                         @click.native="calculateMouseMovement(index, playerIndex)"
@@ -55,39 +59,42 @@
             <div class="" v-if="timeTrialFinished === true && playAll === false" :style="stepsCountStyle">
                 <h5 :style="h3Style"> {{ stepAccuracy.toFixed(2) }}% STEP ACCURACY</h5>
             </div>
+        </div>
 
-            <div :style="playAllSplitsContainerStyle" v-if="playAll === true">
-                <div :style="playAllSplitStyle" v-if="playAllTimes[0]">
-                    <strong>I</strong> - {{playAllTimes[0].toFixed(2)}}s
-                </div>
-                <div :style="playAllSplitStyle" v-if="playAllTimes[1]">
-                    <strong>II</strong> - {{playAllTimes[1].toFixed(2)}}s
-                </div>
-                <div :style="playAllSplitStyle" v-if="playAllTimes[2]">
-                    <strong>III</strong> - {{playAllTimes[2].toFixed(2)}}s
-                </div>
-                <div :style="playAllSplitStyle" v-if="playAllTimes[3]">
-                    <strong>IV</strong> - {{playAllTimes[3].toFixed(2)}}s
-                </div>
-                <div :style="playAllSplitStyle" v-if="playAllTimes[4]">
-                    <strong>V</strong> - {{playAllTimes[4].toFixed(2)}}s
-                </div>
-                <div :style="playAllSplitStyle" v-if="playAllTimes[5]">
-                    <strong>X</strong> - {{playAllTimes[5].toFixed(2)}}s
-                </div>
+        <div :style="playAllSplitsContainerStyle" v-if="playAll === true">
+            <div :style="playAllSplitStyle" v-if="playAllTimes[0]">
+                <strong>I</strong> - {{playAllTimes[0].toFixed(2)}}s
+            </div>
+            <div :style="playAllSplitStyle" v-if="playAllTimes[1]">
+                <strong>II</strong> - {{playAllTimes[1].toFixed(2)}}s
+            </div>
+            <div :style="playAllSplitStyle" v-if="playAllTimes[2]">
+                <strong>III</strong> - {{playAllTimes[2].toFixed(2)}}s
+            </div>
+            <div :style="playAllSplitStyle" v-if="playAllTimes[3]">
+                <strong>IV</strong> - {{playAllTimes[3].toFixed(2)}}s
+            </div>
+            <div :style="playAllSplitStyle" v-if="playAllTimes[4]">
+                <strong>V</strong> - {{playAllTimes[4].toFixed(2)}}s
+            </div>
+            <div :style="playAllSplitStyle" v-if="playAllTimes[5]">
+                <strong>VI</strong> - {{playAllTimes[5].toFixed(2)}}s
+            </div>
+            <div :style="playAllSplitStyle" v-if="playAllTimes[6]">
+                <strong>X</strong> - {{playAllTimes[6].toFixed(2)}}s
+            </div>
 
-                <div :style="playAllSplitStyle" v-if="playAllTotalTime">
-                    <strong>Total Time</strong> - {{playAllTotalTime.toFixed(2)}}s
-                </div>
-                <div :style="playAllSplitStyle" v-if="playAllTotalTime">
-                    <strong>Steps</strong> - {{stepCount}}
-                </div>
-                <div :style="playAllSplitStyle" v-if="playAllTotalTime">
-                    <strong>Wall Hits</strong> - {{wallHitCount}}
-                </div>
-                <div :style="playAllSplitStyle" v-if="playAllTotalTime">
-                    <strong>Step Accuracy</strong> - {{stepAccuracy.toFixed(2)}}%
-                </div>
+            <div :style="playAllSplitStyle" v-if="playAllTotalTime">
+                <strong>Total Time</strong> - {{playAllTotalTime.toFixed(2)}}s
+            </div>
+            <div :style="playAllSplitStyle" v-if="playAllTotalTime">
+                <strong>Steps</strong> - {{stepCount}}
+            </div>
+            <div :style="playAllSplitStyle" v-if="playAllTotalTime">
+                <strong>Wall Hits</strong> - {{wallHitCount}}
+            </div>
+            <div :style="playAllSplitStyle" v-if="playAllTotalTime">
+                <strong>Step Accuracy</strong> - {{stepAccuracy.toFixed(2)}}%
             </div>
         </div>
     </div>
@@ -166,16 +173,16 @@
                         0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,
                     ],
                     'time-trial-VI':[
-                        1 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,
-                        0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,
-                        0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,
-                        0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,
-                        0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,
-                        0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,
-                        0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,
-                        0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,
-                        0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,
-                        0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,
+                        0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,27,0 ,
+                        0 ,26,26,26,26,26,26,0 ,25,0 ,
+                        0 ,25,0 ,0 ,0 ,0 ,25,0 ,25,0 ,
+                        0 ,25,0 ,26,26,0 ,25,0 ,25,0 ,
+                        0 ,25,0 ,25,25,0 ,25,0 ,25,0 ,
+                        0 ,25,0 ,25,25,0 ,25,0 ,25,0 ,
+                        0 ,25,0 ,25,99,0 ,25,0 ,25,0 ,
+                        1 ,25,0 ,26,26,26,25,0 ,25,0 ,
+                        26,25,0 ,0 ,0 ,0 ,0 ,0 ,25,0 ,
+                        0 ,25,0 ,26,26,26,26,0 ,25,0 ,
                     ],
                     'time-trial-VII':[
                         1 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,
@@ -232,6 +239,7 @@
                     'time-trial-III': 0,
                     'time-trial-IV': 0,
                     'time-trial-V': 0,
+                    'time-trial-VI': 70,
                     'time-trial-X': 1,
                 },
                 timeTrialNumberOfTiles:{
@@ -240,11 +248,12 @@
                     'time-trial-III': 33,
                     'time-trial-IV': 48,
                     'time-trial-V': 21,
+                    'time-trial-VI': 41,
                     'time-trial-X': 26,
                 },
                 playAll: false,
                 playAllCounter: 0,
-                playAllArray: ['time-trial-I', 'time-trial-II','time-trial-III','time-trial-IV','time-trial-V','time-trial-X'],
+                playAllArray: ['time-trial-I', 'time-trial-II','time-trial-III','time-trial-IV','time-trial-V','time-trial-VI','time-trial-X'],
                 playAllTimes: [],
                 playAllTotalTime: 0,
                 playerIndex: 1,
@@ -328,7 +337,7 @@
             timeTrialBodyStyle(){
                 return{
                     display: 'flex',
-                    flexFlow: 'column',
+                    flexFlow: 'row',
                     height: 100 + 'vh',
                     width: 100 + 'vw',
                     justifyContent: 'center',
@@ -348,8 +357,7 @@
             playAllSplitsContainerStyle(){
                 return{
                     height: 500 + 'px',
-                    position: 'absolute',
-                    right: 0,
+                    marginLeft: 32 + 'px',
                     width: 200 + 'px',
                     color: 'white',
                     display: 'flex',
@@ -599,7 +607,8 @@
                     let oldPlayerIndex = currentIndex;
                     let temp = this.boardState[lastRowStart + currentIndex]
 
-                    if(this.timeTrialSelected === 'time-trial-II') return this.playStepSound()
+                    if(this.timeTrialSelected === 'time-trial-II') return this.playStepSound();
+                    if(this.timeTrialSelected === 'time-trial-V') return this.playStepSound();
 
                     if(this.timeTrialSelected === 'time-trial-X' && this.playerIndex === 1) return this.playStepSound();
 
