@@ -33,7 +33,7 @@
     		return{
     			position: 'absolute',
                 top: 0,
-                right: 0,
+                left: 0,
                 color: '#4f2f5a',
                 padding: '8px',
 			    fontFamily: "'Viga', sans-serif",
