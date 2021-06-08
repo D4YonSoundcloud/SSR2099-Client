@@ -102,6 +102,7 @@
 
 <script>
     import BoardPiece from "./BoardPiece";
+    import axios from 'axios'
 
     export default {
         name: "TimeTrials",
@@ -302,6 +303,8 @@
                 wallHitCount: 0,
                 stepCount: 0,
 	            playerOneStepSoundEffect: new Audio(require('../assets/Step1.wav')),
+                localhostURL: 'http://localhost:4000',
+                developmentURL: 'https://stark-thicket-52069.herokuapp.com/',
             }
         },
         computed:{
@@ -417,7 +420,10 @@
                 let steps = this.stepCount;
                 let wallHits = this.wallHitCount;
                 return ((steps - wallHits)/steps) * 100
-            }
+            },
+            signedInUser(){
+                return this.$store.state.signedInUser;
+            },
         },
         methods:{
             calculateMouseMovement(clickedIndex, playerIndex){
@@ -519,7 +525,8 @@
                             this.timeTrialTime = Math.round((this.timeTrialTime + Number.EPSILON) * 1000) / 1000;
                             return this.goToNextPlayAllStage()
                         } else {
-                            return this.timeTrialTime = Math.round((this.timeTrialTime + Number.EPSILON) * 1000) / 1000;
+                            this.timeTrialTime = Math.round((this.timeTrialTime + Number.EPSILON) * 1000) / 1000;
+                            return this.updateTime(this.timeTrialSelected, this.timeTrialTime);
                         }
                     }
 
@@ -541,7 +548,8 @@
                             this.timeTrialTime = Math.round((this.timeTrialTime + Number.EPSILON) * 1000) / 1000;
                             return this.goToNextPlayAllStage()
                         } else {
-                            return this.timeTrialTime = Math.round((this.timeTrialTime + Number.EPSILON) * 1000) / 1000;
+                            this.timeTrialTime = Math.round((this.timeTrialTime + Number.EPSILON) * 1000) / 1000;
+                            return this.updateTime(this.timeTrialSelected, this.timeTrialTime);
                         }
                     }
 
@@ -568,7 +576,8 @@
                             this.timeTrialTime = Math.round((this.timeTrialTime + Number.EPSILON) * 1000) / 1000;
                             return this.goToNextPlayAllStage()
                         } else {
-                            return this.timeTrialTime = Math.round((this.timeTrialTime + Number.EPSILON) * 1000) / 1000;
+                            this.timeTrialTime = Math.round((this.timeTrialTime + Number.EPSILON) * 1000) / 1000;
+                            return this.updateTime(this.timeTrialSelected, this.timeTrialTime);
                         }
                     }
 
@@ -590,7 +599,8 @@
                             this.timeTrialTime = Math.round((this.timeTrialTime + Number.EPSILON) * 1000) / 1000;
                             return this.goToNextPlayAllStage()
                         } else {
-                            return this.timeTrialTime = Math.round((this.timeTrialTime + Number.EPSILON) * 1000) / 1000;
+                            this.timeTrialTime = Math.round((this.timeTrialTime + Number.EPSILON) * 1000) / 1000;
+                            return this.updateTime(this.timeTrialSelected, this.timeTrialTime);
                         }
                     }
 
@@ -628,7 +638,8 @@
                             this.timeTrialTime = Math.round((this.timeTrialTime + Number.EPSILON) * 1000) / 1000;
                             return this.goToNextPlayAllStage()
                         } else {
-                            return this.timeTrialTime = Math.round((this.timeTrialTime + Number.EPSILON) * 1000) / 1000;
+                            this.timeTrialTime = Math.round((this.timeTrialTime + Number.EPSILON) * 1000) / 1000;
+                            return this.updateTime(this.timeTrialSelected, this.timeTrialTime);
                         }
                     }
 
@@ -657,7 +668,8 @@
                             this.timeTrialTime = Math.round((this.timeTrialTime + Number.EPSILON) * 1000) / 1000;
                             return this.goToNextPlayAllStage()
                         } else {
-                            return this.timeTrialTime = Math.round((this.timeTrialTime + Number.EPSILON) * 1000) / 1000;
+                            this.timeTrialTime = Math.round((this.timeTrialTime + Number.EPSILON) * 1000) / 1000;
+                            return this.updateTime(this.timeTrialSelected, this.timeTrialTime);
                         }
                     }
 
@@ -694,7 +706,8 @@
                             this.timeTrialTime = Math.round((this.timeTrialTime + Number.EPSILON) * 1000) / 1000;
                             return this.goToNextPlayAllStage()
                         } else {
-                            return this.timeTrialTime = Math.round((this.timeTrialTime + Number.EPSILON) * 1000) / 1000;
+                            this.timeTrialTime = Math.round((this.timeTrialTime + Number.EPSILON) * 1000) / 1000;
+                            return this.updateTime(this.timeTrialSelected, this.timeTrialTime);
                         }
                     }
 
@@ -725,7 +738,8 @@
                             this.timeTrialTime = Math.round((this.timeTrialTime + Number.EPSILON) * 1000) / 1000;
                             return this.goToNextPlayAllStage()
                         } else {
-                            return this.timeTrialTime = Math.round((this.timeTrialTime + Number.EPSILON) * 1000) / 1000;
+                            this.timeTrialTime = Math.round((this.timeTrialTime + Number.EPSILON) * 1000) / 1000;
+                            return this.updateTime(this.timeTrialSelected, this.timeTrialTime);
                         }
                     }
 
@@ -750,6 +764,8 @@
                 this[indexString] = this.playerIndex;
                 this.boardState[this[indexString]] = playerState
                 this.boardState[this[indexString] + this.swapLookUpTable[keyCode]] = temp;
+
+
             },
             goToTimeTrial(timeTrial, playerIndex){
                 //map it so when you restart the character actually goes back to the start (not mutating the original)
@@ -848,7 +864,27 @@
                 this.timeTrialSelected = this.playAllArray[this.playAllCounter]
 
                 this.restartTimeTrial(this.timeTrialSelected)
-            }
+            },
+            updateTime(timeTrial, time){
+                console.log(timeTrial, time)
+                if(time < this.signedInUser[timeTrial].bestTime){
+                    //update time script
+                }
+
+                let requestBody = {
+                    userId: this.signedInUser.userId,
+                    timeTrial: timeTrial,
+                    timeTrialTime: time,
+                    timeDate: new Date().getTime(),
+                }
+
+                console.log(requestBody)
+
+                axios.put(`${this.localhostURL}/updateTime`, requestBody, response => {
+                    console.log(response.data)
+                    this.$store.dispatch('getUpdateUserTimes', response.date)
+                })
+            },
         },
         created(){
             window.addEventListener('keydown', this.handleKeyDownListener)

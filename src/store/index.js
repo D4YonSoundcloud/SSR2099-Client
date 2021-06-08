@@ -35,6 +35,9 @@ export default new Vuex.Store({
     },
     SIGN_OUT_USER(state,payload){
       state.signedInUser = {};
+    },
+    UPDATE_USER_TIMES(state, payload){
+      state.signedInUser = payload
     }
   },
   actions: {
@@ -49,6 +52,9 @@ export default new Vuex.Store({
     },
     getSignOutUser({commit}, payload){
       commit('SIGN_OUT_USER', payload)
+    },
+    getUpdateUserTimes({commit}, payload){
+      commit('UPDATE_USER_TIMES', payload)
     }
   },
   modules: {
