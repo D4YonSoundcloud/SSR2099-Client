@@ -5,9 +5,6 @@
             <div :style="titleStardumStyle"></div>
             <div :style="titleRoyaleStyle" class="floating-text"></div>
         </div>
-        <div class="local-btn" :style="buttonStyle" @click="goToLocal()">
-            <h1 class="blinking-h1" :style="h1Style"> LOCAL </h1>
-        </div>
         <div class="online-btn" :style="buttonStyle" @click="goToMultiplayer()">
             <h1 class="blinking-h1" :style="h1Style"> ONLINE </h1>
         </div>
@@ -16,6 +13,9 @@
         </div>
         <div class="online-btn" :style="buttonStyle" @click="goToLoginWithGoogle()">
             <h1 class="blinking-h1" :style="h1Style"> {{ userLoggedIn ? 'LOG-OUT' : 'LOG-IN' }} </h1>
+        </div>
+        <div class="online-btn" :style="buttonStyle" @click="goToUserProfile()" v-if="userLoggedIn === true">
+            <h1 class="blinking-h1" :style="h1Style"> PROFILE </h1>
         </div>
     </div>
 </template>
@@ -119,48 +119,43 @@
             goToTimeTrial(){
 			    this.$router.push('/time-trials')
             },
+	        goToUserProfile(){
+			    this.$router.push('/userProfile')
+            },
             goToLoginWithGoogle(){
 				console.log('signing in with google AUTH')
 
                 if(this.userLoggedIn === true){
-                	console.log('logging out the user')
-
                 	return this.$gAuth.signOut().then(() => {
 		                this.$store.dispatch('getSignOutUser')
                 		this.userLoggedIn = false;
                     })
                 }
 
-                this.$gAuth.signIn()
-                    .then(googleUser => {
-                        let userInfo = {
-                	    	loginType: 'google',
-                            user: googleUser,
-                            userId: googleUser.Aa,
-                            userGoogleName: googleUser.At.Ve
-                        }
+                this.$gAuth.signIn().then(googleUser => {
+	                let userInfo = {
+		                loginType: 'google',
+		                user: googleUser,
+		                userId: googleUser.Aa,
+		                userGoogleName: googleUser.At.Ve
+	                }
 
-                        axios.post(`${this.localhostURL}/login`, userInfo)
-                            .then( response => {
-                        	    console.log('response from server', response.data)
-                                this.$store.dispatch('getSignInUser', response.data)
-	                            this.userLoggedIn = true;
-	                            this.$router.push('/')
-                            })
-	                        .catch(error => {
-		                        console.log('error logging in', error);
-	                        })
-                    })
-                    .catch(error => {
-                    	console.log('error signed in', error)
+	                axios.post(`${this.localhostURL}/login`, userInfo).then( response => {
+		                this.$store.dispatch('getSignInUser', response.data)
+		                this.userLoggedIn = true;
+		                this.$router.push('/')
+	                }).catch(error => {
+		                console.log('error logging in', error);
+	                })
+                }).catch(error => {
+                    console.log('error signed in', error)
 
-                        this.$gAuth.signOut().then(() => {
-                                console.log('the user has logged out')
-                        })
-                        .catch(err => {
+                    this.$gAuth.signOut().then(() => {
+                        console.log('the user has logged out')
+                    }).catch(err => {
                             console.log('error signout', err)
-                        })
                     })
+                })
             }
         },
         created(){

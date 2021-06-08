@@ -6,6 +6,7 @@ import BoardMultiplayer from "../components/BoardMultiplayer";
 import RoomSelect from "../components/RoomSelect";
 import TitlePage from "../components/TitlePage";
 import TimeTrials from "../components/TimeTrials";
+import UserProfile from "../components/UserProfile";
 
 Vue.use(VueRouter)
 
@@ -29,6 +30,11 @@ const routes = [
     path: '/time-trials',
     name: 'Time-Trials',
     component: TimeTrials,
+  },
+  {
+    path: '/userProfile',
+    name: 'User Profile',
+    component: UserProfile
   },
   {
     path: '/about',

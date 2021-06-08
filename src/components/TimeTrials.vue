@@ -44,8 +44,11 @@
             <div class="" v-if="timeTrialStarted === true && timeTrialFinished === false" :style="timeTrialTimeStyle">
                 <h1 :style="h1Style"> {{timeTrialTimerTime}} </h1>
             </div>
-            <div class="" v-if="timeTrialFinished === true" :style="timeTrialTimeStyle">
+            <div class="" v-if="timeTrialFinished === true && showNewBestTime === false" :style="timeTrialTimeStyle">
                 <h1 :style="h1Style"> {{ timeTrialTime }}s </h1>
+            </div>
+            <div class="" v-if="timeTrialFinished === true && showNewBestTime === true" :style="timeTrialTimeStyle">
+                <h1 :style="h1NewRecordStyle"> {{ timeTrialTime }}s </h1>
             </div>
             <div class="" v-if="timeTrialFinished === true" :style="tilesPerSecondStyle">
                 <h3 :style="h3Style"> {{ tilesPerSecond.toFixed(2) }} TILES/second </h3>
@@ -305,6 +308,7 @@
 	            playerOneStepSoundEffect: new Audio(require('../assets/Step1.wav')),
                 localhostURL: 'http://localhost:4000',
                 developmentURL: 'https://stark-thicket-52069.herokuapp.com/',
+                showNewBestTime: false,
             }
         },
         computed:{
@@ -408,6 +412,14 @@
 		            fontFamily: "'Viga', sans-serif",
 	            }
             },
+	        h1NewRecordStyle(){
+		        return {
+			        width: 100 + '%',
+			        height: 100 + '%',
+			        fontFamily: "'Viga', sans-serif",
+                    color: 'gold',
+		        }
+	        },
             h3Style(){
                 return {
                     width: 100 + '%',
@@ -427,7 +439,6 @@
         },
         methods:{
             calculateMouseMovement(clickedIndex, playerIndex){
-                console.log(clickedIndex, playerIndex)
 
                 if(this.boardState[playerIndex] === 1 && this.playerStatus === 'charging'){
 
@@ -472,7 +483,9 @@
                     return this.restartTimeTrial(this.timeTrialSelected);
                 }
 
-            	if(this.timeTrialFinished === true) return
+            	if(this.timeTrialFinished === true) {
+            		return console.log('the time trial is finished')
+	            }
 
             	if(this.timeTrialStarted === false){
             		this.timeTrialStartTime = performance.now()
@@ -485,6 +498,10 @@
                 return this.handleKeyDownEvent(e);
             },
             handleKeyDownEvent(e) {
+	            if(this.timeTrialFinished === true) {
+		            return console.log('the time trial is finished, somehow weve reached the handleKeyDownInput though')
+	            }
+
                 this.stepCount = this.stepCount + 1;
 
                 if(this.keyCodes[e.keyCode] === 'right') {
@@ -785,6 +802,7 @@
                 this.timeTrialFinished = false
                 this.runStarted = false
                 this.tilesPerSecond = undefined
+                this.showNewBestTime = false;
                 this.playerIndex = this.timeTrialStarterIndexes[timeTrial];
 
                 if(this.playAll === false) {
@@ -810,6 +828,7 @@
                 this.runStarted = false
                 this.tilesPerSecond = undefined
                 this.playerIndex = this.timeTrialStarterIndexes[timeTrial];
+	            this.showNewBestTime = false;
 
                 this.playAllCounter = 0;
                 this.playAllTimes = [];
@@ -866,31 +885,77 @@
                 this.restartTimeTrial(this.timeTrialSelected)
             },
             updateTime(timeTrial, time){
-                console.log(timeTrial, time)
-                if(time < this.signedInUser[timeTrial].bestTime){
-                    //update time script
+                console.log(timeTrial, time, 'about to update time', this.signedInUser[timeTrial].bestTime)
+                if(this.signedInUser[timeTrial].bestTime === null){
+
+	                let requestBody = {
+		                userId: this.signedInUser.userId,
+		                timeTrial: timeTrial,
+		                newBestTime: time,
+		                timeDate: new Date().getTime(),
+		                stepCount: this.stepCount,
+		                wallHitCount: this.wallHitCount,
+		                stepAccuracy: this.stepAccuracy,
+	                }
+	                this.showNewBestTime = true
+	                console.log('about to update the best time for the first time', requestBody)
+
+	                return axios.put(`${this.localhostURL}/updateBestTime`, requestBody).then(response => {
+		                console.log(response.data)
+		                this.$store.dispatch('getUpdateUserTimes', response.data).then(() => {
+			                console.log('we have done the store action')
+		                })
+	                })
+
+                } else if (time < this.signedInUser[timeTrial].bestTime.time) {
+
+	                console.log('about to update the best time')
+	                let requestBody = {
+		                userId: this.signedInUser.userId,
+		                timeTrial: timeTrial,
+		                newBestTime: time,
+		                timeDate: new Date().getTime(),
+		                stepCount: this.stepCount,
+		                wallHitCount: this.wallHitCount,
+		                stepAccuracy: this.stepAccuracy,
+	                }
+	                this.showNewBestTime = true
+	                console.log('about to update the best time', requestBody)
+
+	                return axios.put(`${this.localhostURL}/updateBestTime`, requestBody).then(response => {
+		                console.log(response.data)
+		                this.$store.dispatch('getUpdateUserTimes', response.data).then(() => {
+			                console.log('we have done the store action')
+		                })
+	                })
+
+                } else {
+
+	                let requestBody = {
+		                userId: this.signedInUser.userId,
+		                timeTrial: timeTrial,
+		                timeTrialTime: time,
+		                timeDate: new Date().getTime(),
+		                stepCount: this.stepCount,
+		                wallHitCount: this.wallHitCount,
+		                stepAccuracy: this.stepAccuracy,
+	                }
+
+	                axios.put(`${this.localhostURL}/updateTime`, requestBody).then(response => {
+		                console.log(response.data)
+		                this.$store.dispatch('getUpdateUserTimes', response.data).then(() => {
+			                console.log('we have done the store action')
+		                })
+	                })
                 }
-
-                let requestBody = {
-                    userId: this.signedInUser.userId,
-                    timeTrial: timeTrial,
-                    timeTrialTime: time,
-                    timeDate: new Date().getTime(),
-                }
-
-                console.log(requestBody)
-
-                axios.put(`${this.localhostURL}/updateTime`, requestBody, response => {
-                    console.log(response.data)
-                    this.$store.dispatch('getUpdateUserTimes', response.date)
-                })
             },
         },
         created(){
-            window.addEventListener('keydown', this.handleKeyDownListener)
+
+            document.addEventListener('keydown', this.handleKeyDownListener)
         },
         beforeDestroy(){
-            window.removeEventListener('keydown', this.handleKeyDownEventListener);
+	        document.removeEventListener('keydown', this.handleKeyDownEventListener);
         }
     }
 </script>

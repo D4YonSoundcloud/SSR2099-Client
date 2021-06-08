@@ -37,6 +37,7 @@ export default new Vuex.Store({
       state.signedInUser = {};
     },
     UPDATE_USER_TIMES(state, payload){
+      console.log(payload);
       state.signedInUser = payload
     }
   },
