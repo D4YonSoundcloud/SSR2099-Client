@@ -1,6 +1,6 @@
 <template>
     <div class="board-piece" :style="boardPieceStyle">
-        <div class="board-piece-inside" :style="boardPieceInsideStyle">
+        <div :id="pieceId" class="board-piece-inside" :style="boardPieceInsideStyle">
 <!--            <p v-if="playerIndex !== undefined" :style="playerStyle"> {{playerStatusText[playerStatus]}} </p>-->
 <!--            <p v-if="enemyIndex !== undefined" :style="playerStyle"> {{playerStatusText[enemyStatus]}} </p>-->
         </div>
@@ -10,12 +10,11 @@
 </template>
 
 <script>
-
-
 	export default {
 		name: "BoardPiece",
         props:['state','pieceIndex','pieceWidth','pieceHeight', 'playerIndex', 'playerStatus',
-            'enemyIndex', 'enemyStatus', 'playerUserName', 'enemyUserName', 'buttonPressed'],
+               'playerOneLives', 'playerTwoLives', 'playerOneStatus', 'playerTwoStatus',
+               'enemyIndex', 'enemyStatus', 'playerUserName', 'enemyUserName', 'playerOneButtonPressed', 'playerTwoButtonPressed'],
 		data(){
 			return{
                 boardPieceColors:{
@@ -25,57 +24,100 @@
                     3: 'lightblue',
                     10: 'rgba(0,0,0,0)',
                     11: 'rgba(0,0,0,0)',
-                    25: 'rgb(24,24,24)',
+                    12: 'rgba(0,0,0,0)',
+                    25: 'rgba(0,0,0,0)',
+                    26: 'rgba(0,0,0,0)',
+                    27: 'rgba(0,0,0,0)',
+                    99: 'rgba(0,0,0,0)',
                     100: 'rgba(0,0,0,0)',
                 },
                 boardPieceWidthLookUpTable:{
-                    0: this.pieceWidth * 0.95,
-                    1: this.pieceWidth * 0.95,
+                    0: this.pieceWidth * 1,
+                    1: this.pieceWidth * 1,
                     2: this.pieceWidth * 0.95,
                     3: this.pieceWidth * 0.95,
                     10: this.pieceWidth * 1,
-                    11: this.pieceWidth * 0.75,
-                    25: this.pieceWidth * 0.95,
-                    100: this.pieceWidth * 0.95,
+                    11: this.pieceWidth * 1,
+                    12: this.pieceWidth * 1,
+                    25: this.pieceWidth * 1,
+                    26: this.pieceWidth * 1,
+                    27: this.pieceWidth * 1,
+                    99: this.pieceWidth * 1,
+                    100: this.pieceWidth * 1,
                 },
 				boardPieceHeightLookUpTable:{
-					0: this.pieceHeight * 0.95,
-					1: this.pieceHeight * 0.95,
+					0: this.pieceHeight * 1,
+					1: this.pieceHeight * 1,
 					2: this.pieceHeight * 0.95,
 					3: this.pieceHeight * 0.95,
-					10: this.pieceHeight * 0.65,
+					10: this.pieceHeight * 1,
                     11: this.pieceHeight * 1,
-                    100: this.pieceWidth * 0.95,
-					25: this.pieceWidth * 0.95,
+                    12: this.pieceHeight * 1,
+					25: this.pieceWidth * 1,
+                    26: this.pieceWidth * 1,
+                    27: this.pieceWidth * 1,
+					99: this.pieceWidth * 1,
+                    100: this.pieceWidth * 1,
 				},
                 boardPieceBorderRadiusLookUpTable:{
                     0: 5,
-                    1: 2.5,
+                    1: 0,
                     2: 2.5,
                     3: 2.5,
                     10: 0,
                     11: 0,
+                    12: 0,
                     25: 0,
-                    100: 50
+                    26: 0,
+                    27: 0,
+                    99: 0,
+                    100: 0,
                 },
 				boardPieceBorderRadiusLookUpTableOuter:{
-					0: 10,
-					1: 10,
+					0: 0,
+					1: 0,
 					2: 10,
 					3: 10,
 					10: 0,
 					11: 0,
+					12: 0,
 					25: 0,
-					100: 10,
+                    26: 0,
+                    27: 0,
+					99: 0,
+					100: 0,
 				},
+                transformOriginLookUpTable:{
+                    0: 'center',
+                    1: 'center',
+                    2: 'center',
+                    3: 'center',
+                    10: 'center',
+                    11: 'center',
+                    12: 'center',
+                    25: 'bottom',
+                    26: 'bottom',
+                    27: 'bottom',
+                    99: 'center',
+                    100: 'center',
+                },
                 playerSprite:{
-                    'D4Y': `url(${require('../assets/D4Y-idle-sprite.png')})`,
-                    'KABBAGE': `url(${require('../assets/KABBAGE-idle-sprite.png')})`
+                    'D4Y': `url(${require('../assets/D4Y-idle-sprite-export.png')})`,
+                    'KABBAGE': `url(${require('../assets/KABBAGE-idle-sprite.png')})`,
+                    'GOOB': `url(${require('../assets/GOOB-idle-sprite.png')})`,
+                    'TATHARDES': `url(${require('../assets/GOOB-idle-sprite.png')})`,
+                    'YUNG LAZLO': `url(${require('../assets/GOOB-idle-sprite.png')})`,
+                    'NESS': `url(${require('../assets/GOOB-idle-sprite.png')})`,
                 },
                 backgroundSprite:{
                     0: `url(${require('../assets/background-tile.png')})`,
-                    10: `url(${require('../assets/LASER-Tile-1.png')})`,
-                    11: `url(${require('../assets/LASER-Vertical.png')})`
+                    10: `url(${require('../assets/LASER-Tile-1-lighting.png')})`,
+                    11: `url(${require('../assets/LASER-Vertical.png')})`,
+                    12: `url(${require('../assets/LASER-melee-tile.png')}`,
+                    25: `url(${require('../assets/WALL-TILE.png')})`,
+                    26: `url(${require('../assets/WALL-TILE-small-half.png')})`,
+                    27: `url(${require('../assets/WALL-TILE-top.png')})`,
+                    99: `url(${require('../assets/TIME-TRIAL-FINISH-sprite.png')})`
                 },
                 backgroundSpriteTransform:{
                     0: '',
@@ -86,10 +128,10 @@
                     'D4Y': `url(${require('../assets/D4Y-eyes-sprite.png')})`
                 },
                 playerSpriteTransform:{
-                    'right': 'translateX(-5px) rotateZ(270deg)',
-                    'down': 'translateY(-2px) rotateZ(0deg)',
-                    'left': 'translateX(3px) rotateZ(90deg)',
-                    'up': 'translateY(5px) rotateZ(180deg)'
+                    'right': 'rotateZ(270deg)',
+                    'down': 'rotateZ(0deg)',
+                    'left': 'rotateZ(90deg)',
+                    'up': 'rotateZ(180deg)'
                 },
                 playerStatusText:{
                     'normal': 'N',
@@ -112,7 +154,7 @@
 				return {
 					height: this.pieceHeight + 'px',
 					width: this.pieceWidth + 'px',
-					border: this.state === 0 ? '1px solid #44036b' : '',
+					// border: this.state === 0 ? '1px solid #44036b' : '',
                     backgroundColor: '#501177',
                     display: 'flex',
                     justifyContent: 'center',
@@ -129,10 +171,12 @@
 		            justifyContent: 'center',
 		            alignItems: 'center',
 		            borderRadius: this.boardPieceBorderRadiusLookUpTable[this.state] + '%',
-                    boxShadow: this.boxShadow,
+                    // boxShadow: this.boxShadow,
                     backgroundImage: this.backgroundImage,
                     transform: this.transform,
-                    transformOrigin: 'center',
+                    transformOrigin: this.transformOriginLookUpTable[this.state],
+                    backgroundSize: (this.state === 25 || this.state === 27) ? '100% 100%' : '',
+                    zIndex: 100,
 	            }
             },
             boardPieceEyesStyle(){
@@ -158,17 +202,20 @@
                 }
             },
             boxShadow(){
-			    if(this.state === 1 || this.state === 100) {
+			    if(this.state === 1 || this.state === 100 || this.state === 11 || this.state === 10
+                    || this.state === 25 || this.state === 26 || this.state === 0  || this.state === 27) {
 			        return ''
                 } else {
 			        return '0 0 1px 1px rgba(97, 3, 104, 0.75)'
                 }
             },
             transform(){
-			    if(this.state === 1 || this.playerUserName !== undefined) {
-			        return this.playerSpriteTransform[this.buttonPressed]
-                } else if ( this.state === 100 || this.enemyUserName !== undefined) {
-                    return this.playerSpriteTransform[this.buttonPressed]
+			    if(this.state === 1 || this.playerOneButtonPressed !== undefined) {
+			        return this.playerSpriteTransform[this.playerOneButtonPressed]
+                } else if ( this.state === 100 || this.playerTwoButtonPressed !== undefined) {
+                    return this.playerSpriteTransform[this.playerTwoButtonPressed]
+                } else if ( this.state === 25 || this.state === 27) {
+                    return 'scaleY(2)'
                 } else {
 			        return this.backgroundSpriteTransform[this.state];
                 }
@@ -180,6 +227,54 @@
 			    	return this.backgroundSprite[this.state]
                 }
             },
+            filter(){
+			    if(this.state === 10 || this.state === 11){
+			    	return 'drop-shadow(0px 0px 2px #f53333)';
+                } else {
+			        return 'none';
+                }
+            },
+			pieceId(){
+				return this.makeId(5)
+			}
+		},
+        watch:{
+			playerOneLives(){
+				if(this.playerIndex !== undefined){
+					document.getElementById(this.pieceId).classList.add('player-hit')
+
+					setTimeout(() => {
+						if(document.getElementById(this.pieceId).classList.contains('player-hit')){
+							document.getElementById(this.pieceId).classList.remove('player-hit')
+							console.log('removing player hit')
+						}
+					}, 250)
+                }
+            },
+            playerTwoLives(){
+				if(this.enemyIndex !== undefined){
+					document.getElementById(this.pieceId).classList.add('player-hit')
+
+					setTimeout(() => {
+						if(document.getElementById(this.pieceId).classList.contains('player-hit')){
+							document.getElementById(this.pieceId).classList.remove('player-hit')
+							console.log('removing player hit')
+						}
+					}, 250)
+                }
+            }
+        },
+		methods:{
+			makeId(length){
+				let result = [];
+				let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+				let charactersLength = characters.length;
+				for ( let i = 0; i < length; i++ ) {
+					result.push(characters.charAt(Math.floor(Math.random() *
+						charactersLength)));
+				}
+				return result.join('');
+			},
 		},
 		// created(){
 		// 	console.log(this.state, this.pieceIndex, this.pieceWidth, this.pieceHeight)
@@ -188,4 +283,28 @@
 </script>
 
 <style scoped>
+    .player-hit {
+        animation: shake 0.2s cubic-bezier(.36,.07,.19,.97) both;
+        transform: translate3d(0, -10px, 0);
+        backface-visibility: hidden;
+        perspective: 700px;
+    }
+
+    @keyframes shake {
+        10%, 90% {
+            transform: translate3d(-1px, -10px, 0);
+        }
+
+        20%, 80% {
+            transform: translate3d(2px, -10px, 0);
+        }
+
+        30%, 50%, 70% {
+            transform: translate3d(-4px, -10px, 0);
+        }
+
+        40%, 60% {
+            transform: translate3d(4px, -10px, 0);
+        }
+    }
 </style>

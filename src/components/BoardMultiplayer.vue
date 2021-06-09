@@ -1,29 +1,38 @@
 <template>
-    <div class="board-container" :style="boardContainerStyle">
-        <PlayerUI :enemy="false" :playerUsername="playerNames[0]" :multiplayer="true" :playerLives="playerLives" :playerStatus="playerStatus"></PlayerUI>
+    <div class="board-container" id="multiplayer-board" :style="boardContainerStyle">
+        <PlayerUI :enemy="false" :playerUsername="playerNames[0]" :multiplayer="true"
+                  :playerLives="playerLives" :playerStatus="playerStatus" :gameOver="gameOver"
+                  :winner="playerLives < 1 ? playerNames[1] : playerNames[0]">
+        </PlayerUI>
         <div class="board" :style="boardStyle">
-            <BoardPiece :pieceIndex="index"  v-for="(piece, index) in boardState" :key="index"
+            <BoardPiece :pieceIndex="index"  v-for="(piece, index) in boardState" :key="index" class="board-piece"
+                        @click.native="calculateMouseMovement(index, characterId === users[0] ? playerIndex : enemyIndex)"
+                        :playerOneLives="playerLives" :playerOneStatus="playerStatus"
+                        :playerTwoLives="enemyLives" :playerTwoStatus="enemyStatus"
                         :state="piece" :playerIndex="index === playerIndex ? playerIndex : undefined"
                         :playerUserName="index === playerIndex ? playerNames[0] : undefined "
-                        :buttonPressed="buttonPressed"
+                        :playerOneButtonPressed="index === playerIndex ? playerOneButtonPressed : undefined"
+                        :playerTwoButtonPressed="index === enemyIndex ? playerTwoButtonPressed : undefined"
                         :enemyUserName="index === enemyIndex ? playerNames[1] : undefined "
                         :pieceWidth="boardPieceHeightAndWidth" :playerStatus="index === playerIndex ? playerStatus : 'normal'"
                         :enemyIndex="index === enemyIndex ? enemyIndex : undefined" :enemyStatus="enemyStatus"
                         :pieceHeight="boardPieceHeightAndWidth">
             </BoardPiece>
-            <h1 v-if="gameOver === true" style="margin-top: 16px; color: white;">
-                <mark style="padding: 4px">Game Over!</mark>
+            <div class="board-background"></div>
+            <h1 v-if="gameOver === true" style="margin-top: 16px; color: white; width: 100%; text-align:center">
                 {{playerLives < 1 ? playerNames[1] : playerNames[0]}}
-                <mark style="padding: 4px">won</mark>
-                and {{playerLives < 1 ? playerNames[0] : playerNames[1]}}
-                <mark style="padding: 4px">lost</mark>
+                SURVIVES
+<!--                {{playerLives < 1 ? playerNames[0] : playerNames[1]}}-->
             </h1>
             <!-- TODO MAKE THIS A BUTTON BRO PLZ --->
             <div class="rematch-btn" v-if="gameOver === true" :style="buttonStyle" @click="rematch()">
                 <h1 class="blinking-h1" :style="h1Style"> REMATCH? {{rematchCount}}/2</h1>
             </div>
         </div>
-        <PlayerUI :enemy="true" :playerUsername="this.playerNames[1]" :multiplayer="true" :enemyLives="enemyLives" :enemyStatus="enemyStatus"></PlayerUI>
+        <PlayerUI :enemy="true" :playerUsername="this.playerNames[1]" :multiplayer="true"
+                  :winner="playerLives < 1 ? playerNames[1] : playerNames[0]" :gameOver="gameOver"
+                  :enemyLives="enemyLives" :enemyStatus="enemyStatus">
+        </PlayerUI>
     </div>
 </template>
 
@@ -37,11 +46,12 @@
 	export default {
 		name: "BoardMultiplayer",
 		components:{BoardPiece, PlayerUI},
-        props:['selectedCharacter', 'characterId', 'roomId'],
+        props:['selectedCharacter', 'characterId', 'roomId', 'selectedMap'],
 		data(){
 			return{
 				gameOver: false,
 				boardState:[
+					1,0,0,0,0,0,0,0,0,0,
 					0,0,0,0,0,0,0,0,0,0,
 					0,0,0,0,0,0,0,0,0,0,
 					0,0,0,0,0,0,0,0,0,0,
@@ -50,8 +60,7 @@
 					0,0,0,0,0,0,0,0,0,0,
 					0,0,0,0,0,0,0,0,0,0,
 					0,0,0,0,0,0,0,0,0,0,
-					0,0,0,0,0,0,0,0,0,0,
-					0,0,0,0,0,0,0,0,0,0,
+					0,0,0,0,0,0,0,0,0,100,
 				],
 				previousPieceState: 0,
 				columnCount: 10,
@@ -105,16 +114,18 @@
 					'fire': 'dry',
 					'dry': 'wet',
 				},
-				// socket: io('https://stark-thicket-52069.herokuapp.com/', {
-				// 	query: {
-				// 		roomId: this.roomId
-                //     }
-                // }),
-                socket: io('http://localhost:4000/', {
-                    query: {
-                        roomId: this.roomId
+				socket: io('https://stark-thicket-52069.herokuapp.com/', {
+					query: {
+						roomId: this.roomId,
+                        mapId: this.selectedMap,
                     }
                 }),
+                // socket: io('http://localhost:4000/', {
+                //     query: {
+                //         roomId: this.roomId,
+                //         mapId: this.selectedMap,
+                //     }
+                // }),
 				playerUserName: '',
 				users:[],
                 playerNames: [],
@@ -126,6 +137,17 @@
                 moveDelay: false,
                 rematchCount: 0,
                 hasGivenRematchCount: false,
+                playerOneButtonPressed: 'down',
+                playerTwoButtonPressed: 'up',
+				fightCountDownSoundEffect: new Audio(require('../assets/321Fighting.mp3')),
+                fightCountDownPlayed: false,
+				playerOneStepSoundEffect: new Audio(require('../assets/Step1.wav')),
+				playerTwoStepSoundEffect: new Audio(require('../assets/Step2.wav')),
+                playerHitSoundEffect: new Audio(require('../assets/oof1.wav')),
+                horizontalAttackSoundEffect: new Audio(require('../assets/horizontal-attack.wav')),
+                chargingSoundEffect: new Audio(require('../assets/laser-charge.wav')),
+                otherPlayerHorizontalAttackSoundEffect: new Audio(require('../assets/horizontal-attack.wav')),
+                otherPlayerChargingSoundEffect: new Audio(require('../assets/laser-charge.wav')),
 			}
 		},
 		computed:{
@@ -185,15 +207,35 @@
 		},
 		watch:{
 			playerLives(){
+				this.playerHitSoundEffect.volume = Math.random() / 2;
+                this.playerHitSoundEffect.play();
+
 				if(this.playerLives <= 0){
 					return this.gameOver = true;
 				}
 			},
 			enemyLives(){
+				this.playerHitSoundEffect.volume = Math.random() / 2;
+				this.playerHitSoundEffect.play();
+
 				if(this.enemyLives <= 0){
 					return this.gameOver = true;
 				}
-			}
+			},
+			users(){
+				if(this.users.length === 2 && this.fightCountDownPlayed === false){
+                    this.fightCountDownSoundEffect.play();
+                    this.fightCountDownPlayed = true;
+                }
+            },
+            playerStatus(){
+                if(this.playerStatus === 'attacking' && this.characterId === this.users[1]) return this.playerOtherPlayerHorizontalLaserSound()
+                if(this.playerStatus === 'charging' && this.characterId === this.users[0]) return this.playerOtherPlayerChargingSound()
+            },
+            enemyStatus(){
+                if(this.enemyStatus === 'attacking' && this.characterId === this.users[0]) return this.playerOtherPlayerHorizontalLaserSound()
+                if(this.enemyStatus === 'charging' && this.characterId === this.users[0]) return this.playerOtherPlayerChargingSound()
+            },
 		},
 		methods:{
 		    rematch(){
@@ -212,7 +254,7 @@
 					this.users = data.userIDs;
 					this.playerNames = data.users;
 					this.socket.emit('newUser', {id: this.characterId, username: this.playerUserName});
-					console.log('called emit new user', this.users, this.playerNames, data.game)
+					console.log('called emit new user', this.users, this.playerNames)
 				});
 				this.listen();
 			},
@@ -224,29 +266,14 @@
 		            this.playerNames = data.users;
 		            console.log(this.users, this.playerNames, data.boardState)
 	            })
-	            this.socket.on('giveUserInformation', data => {
-	                console.log(data.game)
-		            this.assignPlayerInfo(data)
-	            })
-	            this.socket.on('giveGridState', data => {
-		            console.log(this.boardState, this.playerUserName, 'I am going to update the board State');
-                    this.boardState = data.gridState;
-		            console.log(this.boardState, this.playerUserName, 'I have updated the board State');
-	            })
-                this.socket.on('giveChangePlayerStatus', data => {
-                	this.playerStatus = data.playerOne.status;
-                	this.enemyStatus = data.playerTwo.status;
-                	console.log('player status has been changed');
+
+                this.socket.on('giveServerUpdate', data => {
+                	this.assignPlayerInfo(data)
                 })
-                this.socket.on('givePlayerAttack', data => {
-                	this.boardState = data.boardState;
-                	console.log('attack has been set from socket')
-                })
+
                 this.socket.on('givePlayerHealth', data => {
-                	console.log(data.playerOne.lives, data.playerTwo.lives)
                     this.playerLives = data.playerOne.lives
                     this.enemyLives = data.playerTwo.lives
-                    console.log('player health has been updated from socket')
                 })
                 this.socket.on('givePlayerRematchCount', data => {
                     this.rematchCount = data.rematchCount;
@@ -258,82 +285,210 @@
                 })
             },
 			assignPlayerInfo(data){
-				console.log(this.boardState, data.boardState, this.playerUserName, 'i am calling assign player info')
+				this.users = data.matchIDs;
+				this.playerNames = data.matchUserName;
 
-                this.boardState = data.boardState;
+                this.playerIndex = data.matchPlayerOne.index;
+                this.playerStatus = data.matchPlayerOne.status;
+                this.playerState = data.matchPlayerOne.state;
+                this.playerAttackTiles = data.matchPlayerOne.attackTiles;
+                this.playerAttackTempTilesState = data.matchPlayerOne.tempTiles;
+                this.playerOneButtonPressed = data.matchPlayerOne.buttonPressed;
 
-                this.playerIndex = data.playerOne.index;
-                this.playerStatus = data.playerOne.status;
-                this.playerState = data.playerOne.state;
-                this.playerAttackTiles = data.playerOne.attackTiles;
-                this.playerAttackTempTilesState = data.playerOne.tempTiles;
+				this.enemyIndex = data.matchPlayerTwo.index;
+				this.enemyStatus = data.matchPlayerTwo.status;
+				this.enemyState = data.matchPlayerTwo.state;
+				this.enemyAttackTiles = data.matchPlayerTwo.attackTiles;
+				this.enemyAttackTempTilesState = data.matchPlayerTwo.tempTiles;
+				this.playerTwoButtonPressed = data.matchPlayerTwo.buttonPressed;
 
-				this.enemyIndex = data.playerTwo.index;
-				this.enemyStatus = data.playerTwo.status;
-				this.enemyState = data.playerTwo.state;
-				this.enemyAttackTiles = data.playerTwo.attackTiles;
-				this.enemyAttackTempTilesState = data.playerTwo.tempTiles;
-
-				if(this.characterId === this.users[0]){
-					console.log('this is player one', this.playerIndex, this.playerStatus)
-                } else if (this.characterId === this.users[1]){
-					console.log('this is player two', this.enemyIndex, this.playerIndex)
+				// this.boardState[this.playerIndex] = this.playerState
+				// this.boardState[this.enemyIndex] = this.enemyState
+                if(this.boardState==''+data.matchBoard){
+                    return
+                } else {
+                    this.boardState = data.matchBoard;
                 }
-
-				this.boardState[this.playerIndex] = this.playerState
-				this.boardState[this.enemyIndex] = this.enemyState
             },
-			handleKeyDownEvent(e) {
-				if(this.characterId === this.users[0]){
-					if(this.playerStatus === 'charging' || this.playerStatus === 'attacking') {
+            calculateMouseMovement(clickedIndex, playerIndex){
+		    	console.log(clickedIndex, playerIndex)
 
-                        this.playerChargeTimeEnd = e.timeStamp;
-                        let difference = this.playerChargeTimeEnd - this.playerChargeTimeStart
-                        this.playerAttackDamage = this.chargeScale(difference);
-                        console.log(this.playerChargeTimeStart, this.playerChargeTimeEnd, difference, this.chargeScale(difference))
+                if(this.boardState[playerIndex] === 1 && this.playerStatus === 'charging'){
 
-					    return this.handleAttack(e, false, this.playerAttackDamage)
-                    }
-                } else if (this.characterId === this.users[1]){
-					if(this.enemyStatus === 'charging' || this.enemyStatus === 'attacking') {
+                	return this.seeIfPlayerInClickedColumn(clickedIndex, playerIndex)
 
-                        this.enemyChargeTimeEnd = e.timeStamp;
-                        let difference = this.enemyChargeTimeEnd - this.enemyChargeTimeStart
-                        this.enemyAttackDamage = this.chargeScale(difference);
-                        console.log(this.enemyChargeTimeStart, this.enemyChargeTimeEnd, difference, this.chargeScale(difference))
+                } else if (this.boardState[playerIndex] === 100 && this.enemyStatus === 'charging'){
 
-					    return this.handleAttack(e, true, this.enemyAttackDamage)
+	                return this.seeIfPlayerInClickedColumn(clickedIndex, playerIndex)
+
+                }
+
+
+                if(clickedIndex - 1 === playerIndex){
+                	let eventObject = {key: 'd', keyCode: 68}
+                	this.handleKeyDownEvent(eventObject)
+                	console.log('the user wants to move right')
+                }
+
+                if(clickedIndex + 1 === playerIndex){
+	                let eventObject = {key: 'a', keyCode: 65}
+	                this.handleKeyDownEvent(eventObject)
+                	console.log('the user wants to move left')
+                }
+
+                if(clickedIndex - 10 === playerIndex){
+	                let eventObject = {key: 's', keyCode: 83}
+	                this.handleKeyDownEvent(eventObject)
+                	console.log('the player wants to move down')
+                }
+
+                if(clickedIndex + 10 === playerIndex) {
+	                let eventObject = {key: 'w', keyCode: 87}
+	                this.handleKeyDownEvent(eventObject)
+                	console.log('the player wants to move up')
+                }
+            },
+            seeIfPlayerInClickedColumn(clickedIndex, playerIndex){
+                //check vertical
+                //find number of tiles up and down
+                let trackingNumUpwards = clickedIndex - 10;
+                let trackingNumDownwards = clickedIndex + 10;
+
+                this.clickedVerticalAttackCheck(clickedIndex, playerIndex, trackingNumUpwards, trackingNumDownwards)
+
+		        //check horizontal
+                //find number of tiles left and right
+                let numToSubtract = clickedIndex % 10;
+                let numToAdd = this.rowCount - numToSubtract;
+
+                let clickedRowEnd = clickedIndex + numToAdd;
+                let clickedRowStart = clickedIndex - numToSubtract;
+
+                this.clickedHorizontalAttackCheck(clickedIndex, playerIndex, clickedRowStart, clickedRowEnd)
+
+	            console.log(numToAdd, numToSubtract, clickedRowEnd, clickedRowStart)
+            },
+            clickedHorizontalAttackCheck(clickedIndex, playerIndex, clickedRowStart, clickedRowEnd){
+	            for(let i = clickedRowStart; i < clickedIndex; i++){
+		            console.log(i)
+		            if(i === playerIndex){
+			            console.log('we are attacking')
+			            let eventObject = {key: 'd', keyCode: 68, timeStamp: performance.now()}
+			            this.handleKeyDownEvent(eventObject)
+			            break;
+		            }
+	            }
+
+	            for(let i = clickedRowEnd; i > clickedIndex; i--){
+		            console.log(i)
+		            if(i === playerIndex){
+			            console.log('we are attacking')
+			            let eventObject = {key: 'd', keyCode: 68, timeStamp: performance.now()}
+			            this.handleKeyDownEvent(eventObject)
+			            break;
+		            }
+	            }
+            },
+            clickedVerticalAttackCheck(clickedIndex, playerIndex, trackingNumUpwards, trackingNumDownwards){
+		        if(trackingNumUpwards === playerIndex){
+			        let eventObject = {key: 'w', keyCode: 87, timeStamp: performance.now()}
+			        return this.handleKeyDownEvent(eventObject)
+                } else if (trackingNumDownwards === playerIndex) {
+			        let eventObject = {key: 'w', keyCode: 87, timeStamp: performance.now()}
+			        return this.handleKeyDownEvent(eventObject)
+                }
+
+		        while(trackingNumUpwards > 0){
+			        console.log(trackingNumUpwards)
+		        	trackingNumUpwards = trackingNumUpwards - 10;
+                    if(trackingNumUpwards === playerIndex){
+	                    let eventObject = {key: 'w', keyCode: 87, timeStamp: performance.now()}
+                    	return this.handleKeyDownEvent(eventObject)
                     }
                 }
 
-				let indexString = this.characterId === this.users[0] ? 'playerIndex' : 'enemyIndex'
-                console.log(indexString, this.characterId, this.users[0])
+		        while(trackingNumDownwards < 100){
+		        	console.log(trackingNumDownwards)
+		        	trackingNumDownwards = trackingNumDownwards + 10;
+		        	if(trackingNumDownwards === playerIndex){
+				        let eventObject = {key: 'w', keyCode: 87, timeStamp: performance.now()}
+				        return this.handleKeyDownEvent(eventObject)
+                    }
+                }
 
-				if(this.keyCodes[e.keyCode] === 'right') {
-					console.log('right')
+            },
+            handleKeyDownEvent(e) {
+	            if(this.characterId === this.users[0]){
+		            if(this.playerStatus === 'melee' || this.playerStatus === 'melee cooldown') {
+			            return console.log('you are in the middle of a melee attack')
+		            }
+	            } else if (this.characterId === this.users[1]){
+		            if(this.enemyStatus === 'melee' || this.enemyStatus === 'melee cooldown') {
+			            return console.log('you are in the middle of a melee attack')
+		            }
+	            }
+
+                if(this.playerStatus === 'attacking' || this.playerStatus === 'charging') {
+
+                    this.playerChargeTimeEnd = e.timeStamp;
+                    let difference = this.playerChargeTimeEnd - this.playerChargeTimeStart
+                    this.playerAttackDamage = this.chargeScale(difference);
+                    console.log(this.playerChargeTimeStart, this.playerChargeTimeEnd, difference, this.chargeScale(difference), this.playerAttackChargeNumber)
+
+                    return this.handleAttack(e, false, this.playerAttackDamage);
+
+                }
+                if(this.enemyStatus === 'attacking' || this.enemyStatus === 'charging') {
+
+                    this.enemyChargeTimeEnd = e.timeStamp;
+                    let difference = this.enemyChargeTimeEnd - this.enemyChargeTimeStart
+                    this.enemyAttackDamage = this.chargeScale(difference);
+                    console.log(this.enemyChargeTimeStart, this.enemyChargeTimeEnd, difference, this.chargeScale(difference))
+
+                    return this.handleAttack(e, true, this.enemyAttackDamage);
+                }
+
+	            let playerState = this.characterId === this.users[0] ? 1 : 100
+
+                if(this.keyCodes[e.keyCode] === 'right') {
                     this.buttonPressed = 'right';
-					return this.handleRightKey(this[indexString], indexString)
-				} else if(this.keyCodes[e.keyCode] === 'left') {
-					console.log('left')
+                    console.log('right')
+	                this.socket.emit('sendPlayerInput', {player: playerState ,input: 'right'})
+                    return this.handleRightKey(this.playerKeyCodes.includes(e.keyCode) ? this.playerIndex : this.enemyIndex, e.keyCode)
+                } else if(this.keyCodes[e.keyCode] === 'left') {
                     this.buttonPressed = 'left';
-					return this.handleLeftKey(this[indexString], indexString)
-				} else if(this.keyCodes[e.keyCode] === 'up') {
-					console.log('up')
+                    console.log('left')
+	                this.socket.emit('sendPlayerInput', {player: playerState ,input: 'left'})
+                    return this.handleLeftKey(this.playerKeyCodes.includes(e.keyCode) ? this.playerIndex : this.enemyIndex, e.keyCode)
+                } else if(this.keyCodes[e.keyCode] === 'up') {
                     this.buttonPressed = 'up';
-					return this.handleUpKey(this[indexString], indexString)
-				} else if(this.keyCodes[e.keyCode] === 'down') {
-					console.log('down')
+                    console.log('up')
+	                this.socket.emit('sendPlayerInput', {player: playerState ,input: 'up'})
+                    return this.handleUpKey(this.playerKeyCodes.includes(e.keyCode) ? this.playerIndex : this.enemyIndex, e.keyCode)
+                } else if(this.keyCodes[e.keyCode] === 'down') {
                     this.buttonPressed = 'down';
-					return this.handleDownKey(this[indexString], indexString)
-				}
-			},
+                    console.log('down')
+	                this.socket.emit('sendPlayerInput', {player: playerState ,input: 'down'})
+                    return this.handleDownKey(this.playerKeyCodes.includes(e.keyCode) ? this.playerIndex : this.enemyIndex, e.keyCode)
+                }
+            },
 			handleAttack(e, enemy, damageAmount){
 				if(this.playerStatus === 'attacking' && enemy === false) return console.log('you are already attacking')
 				if(this.enemyStatus === 'attacking' && enemy === true) return console.log('you are already attacking')
 
+                if(enemy === false) this.playerStatus = 'attacking';
+                if(enemy === true) this.enemyStatus = 'attacking';
+
 				if(this.keyCodes[e.keyCode] === 'right' || this.keyCodes[e.keyCode] === 'left') {
+				    this.playHorizontalLaserSound()
+                    this.socket.emit('sendPlayerStatusChange', {player: enemy ? 100 : 1, status: 'attacking'})
+                    this.socket.emit('sendPlayerAttack', {player: enemy ? 100 : 1, input: this.keyCodes[e.keyCode]})
+
 					return this.handleHorizontalAttack(enemy ? this.enemyIndex : this.playerIndex, enemy, damageAmount)
 				} else if (this.keyCodes[e.keyCode] === 'up' || this.keyCodes[e.keyCode] === 'down') {
+                    this.socket.emit('sendPlayerStatusChange', {player: enemy ? 100 : 1, status: 'attacking'})
+                    this.socket.emit('sendPlayerAttack', {player: enemy ? 100 : 1, input: this.keyCodes[e.keyCode]})
+
 					return this.handleVerticalAttack(enemy ? this.enemyIndex : this.playerIndex, enemy, damageAmount);
 				}
 			},
@@ -341,22 +496,8 @@
 				let numToSubtract = currentPlayerIndex % 10
 				let numToAdd = this.rowCount - numToSubtract
 
-				if(enemy === true) {
-					this.socket.emit('sendChangePlayerStatus', {player: 100, status: 'attacking', index: this.enemyIndex})
-                } else {
-					this.socket.emit('sendChangePlayerStatus', {player: 1, status: 'attacking', index: this.playerIndex})
-                }
-
 				this.findAttackTiles(numToSubtract, numToAdd, currentPlayerIndex, enemy, damageAmount).then(() => {
-					this.assignAttackTiles('horizontal',enemy).then(() => {
-						if(this.characterId === this.users[0]){
-							this.socket.emit('sendPlayerAttack', {player: 1, boardState: this.boardState})
-						} else if (this.characterId === this.users[1]){
-							this.socket.emit('sendPlayerAttack', {player: 100, boardState: this.boardState})
-						}
-						this.attackPressed = false;
-						this.attackCoolDown(enemy);
-					});
+					this.assignAttackTiles('horizontal',enemy)
 					console.log('this is a horizontal attack')
 				});
 			},
@@ -364,122 +505,56 @@
 				let trackingNumDownward = currentPlayerIndex - 10;
 				let trackingNumUpward = currentPlayerIndex + 10;
 
-				if(enemy === true) {
-					this.socket.emit('sendChangePlayerStatus', {player: 100, status: 'attacking', index: this.enemyIndex})
-				} else {
-					this.socket.emit('sendChangePlayerStatus', {player: 1, status: 'attacking', index: this.playerIndex})
-				}
-
 				this.findAttackTilesVertical(trackingNumDownward, trackingNumUpward, enemy, damageAmount).then(() => {
-					this.assignAttackTiles('vertical', enemy).then(() => {
-						if(this.characterId === this.users[0]){
-							this.socket.emit('sendPlayerAttack', {player: 1, boardState: this.boardState})
-						} else if (this.characterId === this.users[1]){
-							this.socket.emit('sendPlayerAttack', {player: 100, boardState: this.boardState})
-						}
-						this.attackPressed = false;
-						this.attackCoolDown(enemy)
-					})
+					this.assignAttackTiles('vertical', enemy)
 					console.log('this is a vertical attack')
 				})
 			},
-			handleRightKey(currentIndex, indexString){
-                console.log(currentIndex, indexString, this[indexString])
+			handleRightKey(currentIndex, indexString, playerState){
 				if ((currentIndex + 1)%this.columnCount === 0) {
-					if(this.boardState[currentIndex - (this.columnCount - 1)] === 25 ) return console.log('this is a wall')
-                    if(this.boardState[currentIndex - (this.columnCount - 1)] === 1 || this.boardState[currentIndex - (this.columnCount - 1)] === 100) return
-					this.swap(currentIndex - (this.columnCount - 1), this[indexString] - (this.columnCount - 1),'rightWall', indexString)
+					if(this.boardState[currentIndex - (this.columnCount - 1)] === 25 ) return this.playStepSound(playerState)
+                    if(this.boardState[currentIndex - (this.columnCount - 1)] === 1 || this.boardState[currentIndex - (this.columnCount - 1)] === 100) return this.playStepSound(playerState)
 				} else {
-					if(this.boardState[currentIndex + 1] === 25) return console.log('this is a wall')
-					if(this.boardState[currentIndex + 1] === 1 || this.boardState[currentIndex + 1] === 100) return console.log('this is a wall')
-
-					this.swap(currentIndex + 1, this[indexString] + 1,'right', indexString)
+					if(this.boardState[currentIndex + 1] === 25) return this.playStepSound(playerState)
+					if(this.boardState[currentIndex + 1] === 1 || this.boardState[currentIndex + 1] === 100) return this.playStepSound(playerState)
 				}
 			},
-			handleLeftKey(currentIndex, indexString){
+			handleLeftKey(currentIndex, indexString, playerState){
 				if ((currentIndex + 1)%this.columnCount === 1) {
-					if(this.boardState[currentIndex - 1] === 25) return console.log('this is a wall')
+					if(this.boardState[currentIndex - 1] === 25) return this.playStepSound(playerState)
                     if(this.boardState[currentIndex + (this.columnCount - 1)] === 1 || this.boardState[currentIndex + (this.columnCount - 1)] === 100) return
-					this.swap(currentIndex + (this.columnCount - 1), this[indexString] + (this.columnCount - 1),'leftWall', indexString)
 				} else {
-					if(this.boardState[currentIndex - 1] === 25) return console.log('this is a wall')
+					if(this.boardState[currentIndex - 1] === 25) return this.playStepSound(playerState)
 					if(this.boardState[currentIndex - 1] === 1 || this.boardState[currentIndex - 1] === 100) return console.log('this is a wall')
-
-					this.swap(currentIndex - 1, this[indexString] - 1, 'left', indexString)
 				}
 			},
-			handleUpKey(currentIndex, indexString){
+			handleUpKey(currentIndex, indexString, playerState){
 				let firstRowEnd = this.columnCount - 1;
 				let lastRowStart = this.boardState.length - this.columnCount;
 				let playerIndex = this.characterId === this.users[0] ? this.playerIndex : this.enemyIndex
-				let playerState = this.characterId === this.users[0] ? this.playerState : this.enemyState
 
 				if(currentIndex <= firstRowEnd){
-					let oldPlayerIndex = currentIndex;
 					let temp = this.boardState[lastRowStart + currentIndex]
-
-					if(temp === 25) return console.log('there is a wall here')
+					if(temp === 25) return this.playStepSound(playerState)
                     if(temp === 100 || temp === 1) return console.log('there is a player here')
-
-					if(this.characterId === this.users[0]){
-						this.playerIndex = lastRowStart + currentIndex;
-						playerIndex = this.playerIndex;
-					} else {
-						this.enemyIndex = lastRowStart + currentIndex;
-						playerIndex = this.enemyIndex
-					}
-
-					console.log(playerIndex, playerState)
-					this.boardState[this[indexString]] = playerState
-					this.boardState[oldPlayerIndex] = temp;
-
-					this.socket.emit('sendUpdatePlayerIndex', {
-						player: this.characterId === this.users[0] ? 1 : 100,
-						index: this[indexString],
-						oldIndex: oldPlayerIndex,
-						oldValue: temp,
-					})
 				} else {
-					if(this.boardState[playerIndex - this.columnCount] === 25) return console.log('you are hitting a wall dude')
+					if(this.boardState[playerIndex - this.columnCount] === 25) return this.playStepSound(playerState)
                     if(this.boardState[playerIndex - this.columnCount] === 1 || this.boardState[playerIndex - this.columnCount] === 100) return console.log('you are hitting a wall dude')
-
-					this.swap(currentIndex - this.columnCount, this[indexString] - this.columnCount, 'up', indexString)
 				}
 			},
-			handleDownKey(currentIndex, indexString){
+			handleDownKey(currentIndex, indexString, playerState){
 				let playerIndex = this.characterId === this.users[0] ? this.playerIndex : this.enemyIndex
-				let playerState = this.characterId === this.users[0] ? this.playerState : this.enemyState
 				let lastRowStart = this.boardState.length - this.columnCount;
 
 				if(currentIndex >= lastRowStart && currentIndex <= this.boardState.length - 1){
 					let difference = currentIndex - lastRowStart
-					let oldPlayerIndex = currentIndex;
 					let temp = this.boardState[difference]
 					playerIndex = difference;
-
-					if(temp === 25) return console.log('there is a wall here')
+					if(temp === 25) return this.playStepSound(playerState)
                     if(temp === 100 || temp === 1) return console.log('there is a player here')
-
-					if(this.characterId === this.users[0]){
-						this.playerIndex = playerIndex;
-					} else {
-						this.enemyIndex = playerIndex;
-					}
-
-					this.boardState[playerIndex] = playerState
-					this.boardState[oldPlayerIndex] = temp;
-
-					this.socket.emit('sendUpdatePlayerIndex', {
-						player: this.characterId === this.users[0] ? 1 : 100,
-						index: this[indexString],
-						oldIndex: oldPlayerIndex,
-						oldValue: temp,
-					})
 				} else {
-					if(this.boardState[playerIndex + this.columnCount] === 25) return console.log('you are hitting a wall bro')
+					if(this.boardState[playerIndex + this.columnCount] === 25) return this.playStepSound(playerState)
 					if(this.boardState[playerIndex + this.columnCount] === 1 || this.boardState[playerIndex + this.columnCount] === 100) return console.log('you are hitting a wall bro')
-
-					this.swap(currentIndex + this.columnCount, playerIndex + this.columnCount, 'down', indexString)
 				}
 			},
 			swap(nonPlayerIndex, newPlayerIndex, keyCode, indexString){
@@ -521,12 +596,12 @@
 				this.boardState[this[indexString]] = this[playerState];
 				this.boardState[this[indexString] + this.swapLookUpTable[keyCode]] = temp;
 
-				this.socket.emit('sendUpdatePlayerIndex', {
-					player: this.characterId === this.users[0] ? 1 : 100,
-                    index: this[indexString],
-                    oldIndex: this[indexString] + this.swapLookUpTable[keyCode],
-                    oldValue: temp,
-                })
+				// this.socket.emit('sendUpdatePlayerIndex', {
+				// 	player: this.characterId === this.users[0] ? 1 : 100,
+                //     index: this[indexString],
+                //     oldIndex: this[indexString] + this.swapLookUpTable[keyCode],
+                //     oldValue: temp,
+                // })
 			},
 			decideStatus(playerStatus, pieceState, eventKeyCode){
 				let statusString = this.playerKeyCodes.includes(eventKeyCode) ? 'playerStatus' : 'enemyStatus';
@@ -534,32 +609,6 @@
 					case 2: return this[statusString] = this.playerStatusFireLookUpTable[playerStatus]
 					case 3: return this[statusString] = this.playerStatusWaterLookUpTable[playerStatus]
 				}
-			},
-			attackCoolDown(enemy){
-				setTimeout(() => {
-					console.log(this.boardState, enemy, 'we are cooling down')
-					this.resetAttackTiles(enemy).then(() => {
-						console.log('we are sending the reset attack')
-						if(this.characterId === this.users[0]){
-							this.socket.emit('sendPlayerAttack', {player: 1, boardState: this.boardState})
-						} else if (this.characterId === this.users[1]){
-							this.socket.emit('sendPlayerAttack', {player: 100, boardState: this.boardState})
-						}
-
-						let tempTiles = enemy ? 'enemyAttackTempTilesState' : 'playerAttackTempTilesState'
-						let attackTiles = enemy ? 'enemyAttackTiles' : 'playerAttackTiles'
-						let status = enemy ? 'enemyStatus' : 'playerStatus'
-
-						this[status] = 'normal'
-						if(this.characterId === this.users[0]){
-							this.socket.emit('sendChangePlayerStatus', {player: 1, status: 'normal', index: this.playerIndex})
-						} else if (this.characterId === this.users[1]){
-							this.socket.emit('sendChangePlayerStatus', {player: 100, status: 'normal', index: this.enemyIndex})
-						}
-						this[attackTiles] = [];
-						this[tempTiles] = [];
-					})
-				}, 250)
 			},
 			async findAttackTiles(numToSubtract, numToAdd, currentPlayerIndex, enemy, damageAmount){
 				let subtractTileIndex = currentPlayerIndex
@@ -691,17 +740,55 @@
             handleKeyDownListener(e){
 	            if(this.gameOver === true) return
 
-	            if(e.key === 'f' || e.key === 'v' || e.key === '0') {
+	            if(e.key === 'f' || e.key === '0') {
 		            if(this.characterId === this.users[0]){
+		                if(this.playerStatus === 'attacking' || this.playerStatus === 'melee' || this.playerStatus === 'melee cooldown') return;
 			            this.playerStatus = 'charging'
                         this.playerChargeTimeStart = e.timeStamp;
-			            this.socket.emit('sendChangePlayerStatus', {player: 1, status: 'charging', index: this.playerIndex})
+                        this.playChargingSound()
+                        this.socket.emit('sendPlayerStatusChange', {player: 1, status: 'charging'})
 		            } else if (this.characterId === this.users[1]){
+                        if(this.enemyStatus === 'attacking' || this.enemyStatus === 'melee' || this.enemyStatus === 'melee cooldown') return;
 			            this.enemyStatus = 'charging'
                         this.enemyChargeTimeStart = e.timeStamp;
-			            this.socket.emit('sendChangePlayerStatus', {player: 100, status: 'charging', index: this.enemyIndex})
+                        this.playChargingSound()
+                        this.socket.emit('sendPlayerStatusChange', {player: 100, status: 'charging'})
 		            }
 	            }
+
+	            if(e.shiftKey === true || e.key === 'q' || e.key === 'Q') {
+	            	console.log('we are doing a melee attack')
+		            if(this.characterId === this.users[0]){
+                        if(this.playerStatus === 'charging' || this.playerStatus === 'attacking' ||
+                            this.playerStatus === 'melee' || this.playerStatus === 'melee cooldown') return
+			            this.playerStatus = 'melee'
+			            this.socket.emit('sendPlayerStatusChange', {player: 1, status: 'melee'})
+			            return this.socket.emit('sendMeleeAttack', {player: 1, type: 'cross'})
+		            } else if (this.characterId === this.users[1]){
+                        if(this.enemyStatus === 'charging' || this.enemyStatus === 'attacking'||
+                            this.enemyStatus === 'melee' || this.enemyStatus === 'melee cooldown') return
+			            this.enemyStatus = 'melee'
+			            this.socket.emit('sendPlayerStatusChange', {player: 100, status: 'melee'})
+                        return this.socket.emit('sendMeleeAttack', {player: 100, type: 'cross'})
+		            }
+                }
+
+                if(e.key === 'v' || e.key === 'V' || e.key === 'e' || e.key === 'E') {
+                    console.log('we are doing a melee X attack')
+                    if(this.characterId === this.users[0]){
+                        if(this.playerStatus === 'charging' || this.playerStatus === 'attacking' ||
+                            this.playerStatus === 'melee' || this.playerStatus === 'melee cooldown') return
+                        this.playerStatus = 'melee'
+                        this.socket.emit('sendPlayerStatusChange', {player: 1, status: 'melee'})
+                        return this.socket.emit('sendMeleeAttack', {player: 1, type: 'x'})
+                    } else if (this.characterId === this.users[1]){
+                        if(this.enemyStatus === 'charging' || this.enemyStatus === 'attacking'||
+                            this.enemyStatus === 'melee' || this.enemyStatus === 'melee cooldown') return
+                        this.enemyStatus = 'melee'
+                        this.socket.emit('sendPlayerStatusChange', {player: 100, status: 'melee'})
+                        return this.socket.emit('sendMeleeAttack', {player: 100, type: 'x'})
+                    }
+                }
 
 	            if(this.moveDelay === true) {
 	                return console.log('you are on a delay my guy')
@@ -709,7 +796,7 @@
 	                this.moveDelay = true;
 	                setTimeout(() => {
 	                    this.moveDelay = false;
-                    }, 33)
+                    }, 50)
                 }
 
 	            return this.handleKeyDownEvent(e);
@@ -733,17 +820,72 @@
 	            this.socket.emit('disconnectFromRoom', this.characterId === this.users[0] ? 1 : 100 )
 	            window.removeEventListener('keydown', this.handleKeyDownEventListener);
 	            window.removeEventListener('keyup', this.handleKeyUpEventListener);
+            },
+            playStepSound(player){
+		    	if(player === 1){
+		    		this.playerOneStepSoundEffect.time = 0;
+				    this.playerOneStepSoundEffect.volume = Math.random() * 0.3;
+		    		this.playerOneStepSoundEffect.play();
+                } else {
+				    this.playerTwoStepSoundEffect.time = 0;
+				    this.playerOneStepSoundEffect.volume = Math.random() * 0.3;
+				    this.playerTwoStepSoundEffect.play();
+                }
+            },
+            playHorizontalLaserSound(){
+		        this.horizontalAttackSoundEffect.currentTime = 0;
+                this.horizontalAttackSoundEffect.volume = 0.03
+                this.horizontalAttackSoundEffect.play()
+                setTimeout(() => {
+                    this.horizontalAttackSoundEffect.pause();
+                }, 250)
+            },
+            playerOtherPlayerHorizontalLaserSound(){
+                this.otherPlayerHorizontalAttackSoundEffect.currentTime = 0;
+                this.otherPlayerHorizontalAttackSoundEffect.volume = 0.05
+                this.otherPlayerHorizontalAttackSoundEffect.play()
+                setTimeout(() => {
+                    this.otherPlayerHorizontalAttackSoundEffect.pause();
+                }, 250)
+            },
+            playChargingSound(){
+                this.otherPlayerChargingSoundEffect.currentTime = 0;
+		        this.chargingSoundEffect.volume = 0.15
+                this.chargingSoundEffect.play();
+            },
+            playerOtherPlayerChargingSound(){
+		        this.otherPlayerChargingSoundEffect.currentTime = 0;
+                this.otherPlayerChargingSoundEffect.volume = 0.20
+                this.otherPlayerChargingSoundEffect.play();
             }
 		},
 		created(){
 			this.playerUserName = this.selectedCharacter;
             this.joinServer();
-            console.log('we are joining the server', this.characterId, this.roomId);
+            console.log('we are joining the server', this.characterId, this.roomId, this.selectedMap);
+
+            this.fightCountDownSoundEffect.loop = false;
+            this.fightCountDownSoundEffect.addEventListener('ended', () => {
+            	this.fightCountDownSoundEffect.time = 0;
+            	this.fightCountDownSoundEffect.pause();
+            }, false)
+            this.playerOneStepSoundEffect.loop = false;
+            this.playerTwoStepSoundEffect.loop = false;
+            this.playerHitSoundEffect.loop = false;
 
 			window.addEventListener('beforeunload', this.exitWindow)
 			window.addEventListener('keydown', this.handleKeyDownListener)
 			// window.addEventListener('keyup', this.handleKeyUpListener)
 		},
+        mounted(){
+		    document.getElementById('multiplayer-board').addEventListener('auxclick', (e) => {
+		    	if(`${e.which}${e.button}` === '32') {
+		    		let eventObject = {key: 'f', timeStamp: e.timeStamp}
+		    		return this.handleKeyDownListener(eventObject);
+			    }
+
+            })
+        },
 		beforeDestroy(){
 			console.log('I am being disconnected dude', this.characterId === this.users[0] ? 1 : 100)
 			this.socket.emit('disconnectFromRoom', this.characterId === this.users[0] ? 1 : 100 )
@@ -767,6 +909,10 @@
         transition: 0.2s ease;
     }
 
+    .board-piece:hover{
+        opacity: 0.8;
+    }
+
     @keyframes gradient {
         0% {
             background-position: 0 50%;
@@ -785,5 +931,14 @@
 
     .rematch-btn:hover{
         transform: translateX(15px);
+    }
+
+    .board-background{
+        position: absolute;
+        width: 550px;
+        height: 550px;
+        transform: translate(-25px, -25px);
+        transform-origin: center;
+        background-image: url("../assets/board-background-main-2.png")
     }
 </style>

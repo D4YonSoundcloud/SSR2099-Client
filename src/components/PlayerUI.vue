@@ -19,12 +19,16 @@
 <script>
     export default {
         name: "PlayerUI",
-        props: ['enemy', 'playerUsername', 'multiplayer', 'enemyLives', 'playerLives', 'playerStatus', 'enemyStatus'],
+        props: ['enemy', 'playerUsername', 'multiplayer', 'enemyLives', 'playerLives', 'playerStatus', 'enemyStatus', 'winner', 'gameOver'],
         data(){
             return {
                 choosePlayerTitleSprite:{
                     'D4Y': `url(${require('../assets/D4Y-TITLE-SPRITE.png')})`,
-                    'KABBAGE': `url(${require('../assets/KABBAGE-TITLE-SPRITE.png')})`
+                    'KABBAGE': `url(${require('../assets/KABBAGE-TITLE-SPRITE.png')})`,
+                    'GOOB': `url(${require('../assets/NO-USER-TITLE-SPRITE.png')})`,
+                    'TATHARDES': `url(${require('../assets/NO-USER-TITLE-SPRITE.png')})`,
+                    'YUNG LAZLO': `url(${require('../assets/NO-USER-TITLE-SPRITE.png')})`,
+                    'NESS': `url(${require('../assets/NO-USER-TITLE-SPRITE.png')})`,
                 }
             }
         },
@@ -42,20 +46,55 @@
                 }
             },
             mainContainerStyle() {
-	            return {
-		            width: 300 + 'px',
-		            height: 525 + 'px',
-		            display: 'flex',
-		            flexFlow: 'column',
-		            justifyContent: 'center',
-		            alignItems: 'center',
-		            marginRight: this.enemy ? 0 : 32 + 'px',
-		            marginLeft: this.enemy ? 32 + 'px' : 0,
-		            color: 'white',
-		            transform: 'translateY(-10px)',
-                    borderRadius: '1.25%',
-                    boxShadow: '0 0 20px 0 #bf05bf',
-	            }
+            	if(this.gameOver === true && this.playerUserName === this.winner) {
+            		return {
+			            width: 300 + 'px',
+			            height: 525 + 'px',
+			            display: 'flex',
+			            flexFlow: 'column',
+			            justifyContent: 'center',
+			            alignItems: 'center',
+			            marginRight: this.enemy ? 0 : 32 + 'px',
+			            marginLeft: this.enemy ? 32 + 'px' : 0,
+			            color: 'white',
+			            transform: 'translateY(-10px) scale(1.15)',
+			            borderRadius: '1.25%',
+			            boxShadow: '0 0 20px 0 #bf05bf',
+			            transition: 0.2 + 's ease'
+                    }
+                } else if (this.gameOver === true && this.playerUserName !== this.winner) {
+            		return {
+			            width: 300 + 'px',
+			            height: 525 + 'px',
+			            display: 'flex',
+			            flexFlow: 'column',
+			            justifyContent: 'center',
+			            alignItems: 'center',
+			            marginRight: this.enemy ? 0 : 32 + 'px',
+			            marginLeft: this.enemy ? 32 + 'px' : 0,
+			            color: 'white',
+			            transform: 'translateY(-10px) scale(0.95)',
+			            borderRadius: '1.25%',
+			            boxShadow: '0 0 20px 0 #bf05bf',
+			            transition: 0.2 + 's ease'
+                    }
+                } else {
+		            return {
+			            width: 300 + 'px',
+			            height: 525 + 'px',
+			            display: 'flex',
+			            flexFlow: 'column',
+			            justifyContent: 'center',
+			            alignItems: 'center',
+			            marginRight: this.enemy ? 0 : 32 + 'px',
+			            marginLeft: this.enemy ? 32 + 'px' : 0,
+			            color: 'white',
+			            transform: 'translateY(-10px)',
+			            borderRadius: '1.25%',
+			            boxShadow: 'rgb(152 6 162) 0px 0px 200px 0px inset',
+                        transition: 0.2 + 's ease'
+		            }
+                }
             },
             titleStyle(){
                 return {
@@ -100,7 +139,7 @@
                     width: this.livesAmount >= 0 ? ((this.livesAmount/50)*100) + '%' : 0 + '%',
 	                borderBottom: '2px solid #000000',
 	                borderRadius: '5px 2px 5px 2px',
-                    boxShadow: '0 0 30px 1px #3c033c',
+                    boxShadow: 'rgb(191 12 191) 0px 0px 30px 1px',
                     transition: 0.2 + 's ease',
                 }
             },
@@ -110,7 +149,7 @@
 			        height: 25 + 'px',
 			        borderBottom: '2px solid #000000',
 			        borderRadius: '5px 2px 5px 2px',
-			        boxShadow: '0 0 30px 1px #3c033c',
+			        boxShadow: 'rgb(191 12 191) 0px 0px 30px 1px',
                     position: 'absolute',
                     bottom: 25 + '%',
                     left: 20 + '%',
@@ -152,9 +191,6 @@
 
                 return console.log(this.livesAmount)
             },
-            playerStatus(){
-          	    console.log(this.playerStatus)
-            }
         },
         methods:{
             makeId(length){
