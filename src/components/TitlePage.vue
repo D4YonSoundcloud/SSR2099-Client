@@ -5,11 +5,11 @@
             <div :style="titleStardumStyle"></div>
             <div :style="titleRoyaleStyle" class="floating-text"></div>
         </div>
-        <div class="online-btn" :style="buttonStyle" @click="goToMultiplayer()">
-            <h1 class="blinking-h1" :style="h1Style"> ONLINE </h1>
-        </div>
         <div class="online-btn" :style="buttonStyle" @click="goToTimeTrial()">
             <h1 class="blinking-h1" :style="h1Style"> TIME-TRIALS </h1>
+        </div>
+        <div class="online-btn" :style="buttonStyle" @click="goToMultiplayer()">
+            <h1 class="blinking-h1" :style="h1Style"> ONLINE PVP </h1>
         </div>
         <div class="online-btn" :style="buttonStyle" @click="goToLoginWithGoogle()">
             <h1 class="blinking-h1" :style="h1Style"> {{ userLoggedIn ? 'LOG-OUT' : 'LOG-IN' }} </h1>

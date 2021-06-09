@@ -330,6 +330,7 @@
                     outline: 'none',
                     border: 'none',
                     color: 'rgb(255,239,0)',
+                    textShadow: '0 0 7px gold',
                     padding: 8 + 'px',
                     paddingLeft: 16 + 'px',
                     paddingRight: 16 + 'px',
@@ -418,6 +419,7 @@
 			        height: 100 + '%',
 			        fontFamily: "'Viga', sans-serif",
                     color: 'gold',
+                    textShadow: '0 0 7px gold'
 		        }
 	        },
             h3Style(){

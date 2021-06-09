@@ -2,9 +2,9 @@
   <div id="app">
       <div id="nav">
           <router-link class="nav-link" to="/" :style="linkStyle">HOME</router-link>
-          <router-link class="nav-link" to="/local" :style="linkStyle">LOCAL</router-link>
-          <router-link class="nav-link" to="/multiplayer" :style="linkStyle">ONLINE</router-link>
           <router-link class="nav-link" to="/time-trials" :style="linkStyle">TIME-TRIALS</router-link>
+          <router-link class="nav-link" to="/multiplayer" :style="linkStyle">ONLINE PVP</router-link>
+          <router-link v-if="Object.keys(this.signedInUser).length !== 0" class="nav-link" to="/userProfile" :style="linkStyle">PROFILE</router-link>
       </div>
       <router-view/>
       <div class="bottom-info" v-if="hideMenu === false" :style="bottomInfoContainer">
@@ -63,6 +63,9 @@
                 fontFamily: "'Viga', sans-serif",
                 transition: 0.2 + 's ease',
             }
+        },
+        signedInUser(){
+    	    return this.$store.state.signedInUser
         }
     },
     methods:{
