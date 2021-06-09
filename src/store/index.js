@@ -18,6 +18,8 @@ export default new Vuex.Store({
       state.playerLivesStore = payload
     },
     SIGN_IN_USER(state,payload){
+      console.log(payload)
+
       state.signedInUser.userId = payload.userId
       state.signedInUser.googleUserName = payload.userGoogleName
       state.signedInUser['time-trial-I'] = payload['time-trial-I']
@@ -30,6 +32,8 @@ export default new Vuex.Store({
       state.signedInUser['time-trial-VIII'] = payload['time-trial-VIII']
       state.signedInUser['time-trial-IX'] = payload['time-trial-IX']
       state.signedInUser['time-trial-X'] = payload['time-trial-X']
+      state.signedInUser['time-trial-all'] = payload['time-trial-all']
+      state.signedInUser['pvpStats'] = payload['pvpStats']
 
       console.log(state.signedInUser)
     },
