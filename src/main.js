@@ -10,10 +10,6 @@ const gauthOption = {
   prompt: 'select_account'
 }
 
-let clientId = `${process.env.VUE_APP_CLIENT_ID}`
-
-console.log(clientId, 'this is the app client ID')
-
 Vue.use(GAuth, gauthOption)
 
 Vue.config.productionTip = false

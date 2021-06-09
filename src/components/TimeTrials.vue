@@ -2,40 +2,47 @@
     <div class="time-trial-body" :style="timeTrialBodyStyle">
         <div :style="timeTrialSelectionContainerStyle" v-if="timeTrialSelected === undefined">
             <button class="time-trial-button" :style="timeTrialButtonStyle" @click="goToTimeTrial('time-trial-I', 1)" >
-                <h1>TIME-TRIAL I</h1>
+                <h1 style="width: 100%">TIME-TRIAL I</h1>
             </button>
             <button class="time-trial-button"  :style="timeTrialButtonStyle" @click="goToTimeTrial('time-trial-II', 2)" >
-                <h1>TIME-TRIAL II</h1>
+                <h1 style="width: 100%">TIME-TRIAL II</h1>
             </button>
             <button class="time-trial-button"  :style="timeTrialButtonStyle" @click="goToTimeTrial('time-trial-III', 0)" >
-                <h1>TIME-TRIAL III</h1>
+                <h1 style="width: 100%">TIME-TRIAL III</h1>
             </button>
             <button class="time-trial-button"  :style="timeTrialButtonStyle" @click="goToTimeTrial('time-trial-IV', 0)" >
-                <h1>TIME-TRIAL IV</h1>
+                <h1 style="width: 100%">TIME-TRIAL IV</h1>
             </button>
             <button class="time-trial-button"  :style="timeTrialButtonStyle" @click="goToTimeTrial('time-trial-V', 0)" >
-                <h1>TIME-TRIAL V</h1>
+                <h1 style="width: 100%">TIME-TRIAL V</h1>
             </button>
             <button class="time-trial-button"  :style="timeTrialButtonStyle" @click="goToTimeTrial('time-trial-VI', 70)" >
-                <h1>TIME-TRIAL VI</h1>
+                <h1 style="width: 100%">TIME-TRIAL VI</h1>
+            </button>
+            <button class="time-trial-button"  :style="timeTrialButtonStyle" @click="goToTimeTrial('time-trial-VII', 1)" >
+                <h1 style="width: 100%">TIME-TRIAL VII</h1>
+            </button>
+            <button class="time-trial-button"  :style="timeTrialButtonStyle" @click="goToTimeTrial('time-trial-VIII', 0)" >
+                <h1 style="width: 100%">TIME-TRIAL VIII</h1>
+            </button>
+            <button class="time-trial-button"  :style="timeTrialButtonStyle" @click="goToTimeTrial('time-trial-IX', 45)" >
+                <h1 style="width: 100%">TIME-TRIAL IX</h1>
             </button>
             <button class="time-trial-button"  :style="timeTrialButtonStyle" @click="goToTimeTrial('time-trial-X', 1)" >
-                <h1>TIME-TRIAL X</h1>
+                <h1 style="width: 100%">TIME-TRIAL X</h1>
             </button>
             <button class="time-trial-button"  :style="timeTrialButtonStyle" @click="playAllTimeTrials()" >
-                <h1>TIME-TRIAL ALL</h1>
+                <h1 style="width: 100%">TIME-TRIAL ALL</h1>
             </button>
         </div>
 
         <div class="board" :style="timeTrialBoardStyle" v-if="timeTrialSelected !== undefined">
             <BoardPiece :pieceIndex="index"  v-for="(piece, index) in boardState" :key="index" class="board-piece"
-                        @click.native="calculateMouseMovement(index, playerIndex)"
                         :playerOneLives="50" :playerOneStatus="'normal'"
-                        :playerTwoLives="50" :playerTwoStatus="'normal'"
                         :state="piece" :playerIndex="index === playerIndex ? playerIndex : undefined"
                         :playerUserName="'D4Y'"
                         :playerOneButtonPressed="index === playerIndex ? playerOneButtonPressed : undefined"
-                        :pieceWidth="50" :playerStatus="index = playerIndex ? 'normal' : 'undefined'"
+                        :pieceWidth="50" :playerStatus="'normal'"
                         :pieceHeight="50">
             </BoardPiece>
 
@@ -84,7 +91,16 @@
                 <strong>VI</strong> - {{playAllTimes[5].toFixed(2)}}s
             </div>
             <div :style="playAllSplitStyle" v-if="playAllTimes[6]">
-                <strong>X</strong> - {{playAllTimes[6].toFixed(2)}}s
+                <strong>VII</strong> - {{playAllTimes[6].toFixed(2)}}s
+            </div>
+            <div :style="playAllSplitStyle" v-if="playAllTimes[7]">
+                <strong>VIII</strong> - {{playAllTimes[7].toFixed(2)}}s
+            </div>
+            <div :style="playAllSplitStyle" v-if="playAllTimes[8]">
+                <strong>IX</strong> - {{playAllTimes[8].toFixed(2)}}s
+            </div>
+            <div :style="playAllSplitStyle" v-if="playAllTimes[9]">
+                <strong>X</strong> - {{playAllTimes[9].toFixed(2)}}s
             </div>
 
             <div :style="playAllSplitStyle" v-if="playAllTotalTime">
@@ -189,40 +205,40 @@
                         0 ,25,0 ,26,26,26,26,0 ,25,0 ,
                     ],
                     'time-trial-VII':[
-                        1 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,
-                        0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,
-                        0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,
-                        0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,
-                        0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,
-                        0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,
-                        0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,
-                        0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,
-                        0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,
-                        0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,
+                        27,1 ,27,27,27,27,27,27,27,27,
+                        25,0 ,26,0 ,0 ,0 ,25,0 ,0 ,0 ,
+                        25,0 ,0 ,0 ,26,0 ,0 ,0 ,26,0 ,
+                        25,26,26,26,25,26,26,26,0 ,0 ,
+                        25,25,0 ,0 ,0 ,25,0 ,0 ,0 ,26,
+                        25,0 ,0 ,26,0 ,0 ,0 ,26,26,25,
+                        25,0 ,26,25,26,26,26,25,25,25,
+                        25,0 ,0 ,25,0 ,0 ,0 ,0 ,0 ,25,
+                        25,26,0 ,0 ,0 ,26,26,26,0 ,25,
+                        25,25,26,26,26,25,25,25,99,25,
                     ],
                     'time-trial-VIII':[
-                        1 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,
-                        0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,
-                        0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,
-                        0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,
-                        0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,
-                        0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,
-                        0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,
-                        0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,
-                        0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,
-                        0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,
+                        1 ,27,27,27,0 ,27,0 ,0 ,0 ,0 ,
+                        26,0 ,0 ,25,0 ,25,0 ,26,26,26,
+                        25,0 ,0 ,25,0 ,25,0 ,25,0 ,0 ,
+                        25,25,25,25,0 ,0 ,0 ,25,26,26,
+                        0 ,0 ,0 ,0 ,26,26,26,25,0 ,0 ,
+                        26,26,26,0 ,25,0 ,0 ,25,0 ,26,
+                        0 ,0 ,0 ,0 ,25,0 ,0 ,25,0 ,25,
+                        0 ,26,26,26,25,25,25,25,0 ,25,
+                        0 ,25,0 ,25,0 ,0 ,0 ,0 ,99,26,
+                        0 ,25,0 ,25,0 ,26,26,26,26,0 ,
                     ],
                     'time-trial-IX':[
-                        1 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,
-                        0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,
-                        0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,
-                        0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,
-                        0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,
-                        0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,
-                        0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,
-                        0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,
-                        0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,
-                        0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,
+                        27,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,27,
+                        26,26,26,26,26,26,26,26,26,26,
+                        0 ,0 ,0 ,0 ,0 ,0 ,25,0 ,0 ,0 ,
+                        25,26,26,26,26,0 ,25,0 ,26,26,
+                        25,25,25,25,25,1 ,25,0 ,25,25,
+                        0 ,0 ,25,0 ,99,26,25,0 ,0 ,0 ,
+                        26,0 ,25,0 ,25,25,25,26,26,26,
+                        26,0 ,25,0 ,0 ,0 ,0 ,0 ,0 ,25,
+                        26,0 ,25,26,26,26,26,26,0 ,25,
+                        26,0 ,0 ,0 ,0 ,0 ,0 ,25,0 ,25,
                     ],
                     'time-trial-X':[
                         27,1 ,27,0 ,0 ,0 ,0 ,27,0 ,27,
@@ -244,6 +260,9 @@
                     'time-trial-IV': 0,
                     'time-trial-V': 0,
                     'time-trial-VI': 70,
+                    'time-trial-VII': 1,
+                    'time-trial-VIII': 0,
+                    'time-trial-IX': 45,
                     'time-trial-X': 1,
                 },
                 timeTrialNumberOfTiles:{
@@ -253,11 +272,15 @@
                     'time-trial-IV': 48,
                     'time-trial-V': 21,
                     'time-trial-VI': 41,
+                    'time-trial-VII': 39,
+                    'time-trial-VIII': 17,
+                    'time-trial-IX': 39,
                     'time-trial-X': 26,
                 },
                 playAll: false,
                 playAllCounter: 0,
-                playAllArray: ['time-trial-I', 'time-trial-II','time-trial-III','time-trial-IV','time-trial-V','time-trial-VI','time-trial-X'],
+                playAllArray: ['time-trial-I', 'time-trial-II','time-trial-III','time-trial-IV','time-trial-V',
+                               'time-trial-VI','time-trial-VII','time-trial-VIII','time-trial-IX', 'time-trial-X'],
                 playAllTimes: [],
                 playAllTotalTime: 0,
                 playerIndex: 1,
@@ -309,6 +332,8 @@
                 localhostURL: 'http://localhost:4000',
                 developmentURL: 'https://stark-thicket-52069.herokuapp.com/',
                 showNewBestTime: false,
+                framesPerSecond: 60,
+                prevTick: 0,
             }
         },
         computed:{
@@ -334,12 +359,13 @@
                     padding: 8 + 'px',
                     paddingLeft: 16 + 'px',
                     paddingRight: 16 + 'px',
-                    margin: 16 + 'px',
+                    margin: 8 + 'px',
                     backgroundColor: 'rgba(0,0,0,0)',
                     boxShadow: '0 0 1px 1px rgb(255,239,0)',
                     cursor: 'pointer',
                     borderRadius: '4px',
                     transition: 0.2 + 's ease',
+                    width: 275 + 'px',
                 }
             },
             timeTrialBodyStyle(){
@@ -807,6 +833,8 @@
                 this.showNewBestTime = false;
                 this.playerIndex = this.timeTrialStarterIndexes[timeTrial];
 
+                this.prevTick = 0;
+
                 if(this.playAll === false) {
                     this.stepCount = 0;
                     this.wallHitCount = 0;
@@ -838,6 +866,8 @@
 
                 this.stepCount = 0;
                 this.wallHitCount = 0;
+
+	            this.prevTick = 0;
 
                 console.log(this.timeTrialStarterIndexes[timeTrial])
                 this.boardState[this.playerIndex] = 1
@@ -873,7 +903,8 @@
                         this.playAllTotalTime = this.playAllTotalTime + time;
                     }
 
-                    console.log(this.playAllTotalTime)
+                    console.log(this.playAllTotalTime, 'about to update total time')
+                    this.updateTime('time-trial-all', this.playAllTotalTime)
 
                     return this.timeTrialFinished = true
                 }
@@ -886,7 +917,7 @@
 
                 this.restartTimeTrial(this.timeTrialSelected)
             },
-            updateTime(timeTrial, time){
+            updateTime(timeTrial, time, all){
                 console.log(timeTrial, time, 'about to update time', this.signedInUser[timeTrial].bestTime)
                 if(this.signedInUser[timeTrial].bestTime === null){
 
@@ -966,7 +997,6 @@
     .time-trial-body {
         background: linear-gradient(180deg, #080000, #060500, #040400, #000000);
         background-size: 400% 400%;
-        animation: gradient 10s ease infinite;
         transition: 0.2s ease;
     }
 
@@ -979,21 +1009,6 @@
         background-image: url("../assets/board-background-main-2.png")
     }
 
-    @keyframes gradient {
-        0% {
-            background-position: 0 50%;
-        }
-        25% {
-            background-position: 100% 50%;
-        }
-        75% {
-            background-position: 50% 100%;
-        }
-        100%
-        {
-            background-position: 0 50%;
-        }
-    }
     .time-trial-button:hover{
         transform: translateX(15px);
     }

@@ -11,11 +11,11 @@
         <div class="online-btn" :style="buttonStyle" @click="goToMultiplayer()">
             <h1 class="blinking-h1" :style="h1Style"> ONLINE PVP </h1>
         </div>
-        <div class="online-btn" :style="buttonStyle" @click="goToLoginWithGoogle()">
-            <h1 class="blinking-h1" :style="h1Style"> {{ userLoggedIn ? 'LOG-OUT' : 'LOG-IN' }} </h1>
-        </div>
         <div class="online-btn" :style="buttonStyle" @click="goToUserProfile()" v-if="userLoggedIn === true">
             <h1 class="blinking-h1" :style="h1Style"> PROFILE </h1>
+        </div>
+        <div class="online-btn" :style="buttonStyle" @click="goToLoginWithGoogle()">
+            <h1 class="blinking-h1" :style="h1Style"> {{ userLoggedIn ? 'LOG-OUT' : 'LOG-IN' }} </h1>
         </div>
     </div>
 </template>

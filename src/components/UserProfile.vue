@@ -1,9 +1,20 @@
 <template>
     <div class="title-container" :style="mainTitleContainerStyle">
         <div class="stats-container" :style="statsMainContainerStyle">
+            <!-- PVP stats + name container -->
             <div class="pvp-stats-container" :style="pvpStatsContainerStyle">
                 <h1 :style="h1Style"> {{signedInUserName.toUpperCase()}}</h1>
+                <div class="pvp-stats" :style="winLossContainerStyle">
+                    <div class="win-loss-box" :style="winLossBoxStyle">
+                        <h2 :style="h2Style">W: {{userWins}}</h2>
+                    </div>
+                    <div class="win-loss-box" :style="winLossBoxStyle">
+                        <h2 :style="h2Style">L: {{userLosses}}</h2>
+                    </div>
+                </div>
             </div>
+
+
             <div class="times-stats-container" :style="timeStatsContainerStyle">
                 <!-- Time trial I Stats-->
                 <div @click="showStatDetails('time-trial-I')" :style="detailViewTimeTrial['time-trial-I'] ? timeStatsDetailsStyle : timeStatsStyle">
@@ -106,7 +117,7 @@
                     <div :style="detailViewTimeTrial['time-trial-V'] ? timeTitleDetailedStyle : timeTitleStyle">
                         <p :style="pStyle">TIME TRIAL V -
                             <strong :style="strongStyle">
-                                {{signedInUser['time-trial-I'].bestTime === null ? '...' : signedInUser['time-trial-V'].bestTime.time + 's'}}
+                                {{signedInUser['time-trial-V'].bestTime === null ? '...' : signedInUser['time-trial-V'].bestTime.time + 's'}}
                             </strong>
                         </p>
                     </div>
@@ -319,9 +330,15 @@
 
                 }
             },
+			h2Style(){
+				return{
+					width: 100 + '%',
+					color: 'white',
+				}
+			},
 			statsMainContainerStyle(){
 				return{
-                    width: 85 + '%',
+                    width: 95 + '%',
                     height: 85 + '%',
                     display: 'flex',
                     flexFlow: 'row',
@@ -340,6 +357,26 @@
                     borderRight: '1px solid white',
 				}
 			},
+            winLossContainerStyle(){
+				return{
+					width: 90 + '%',
+					height: 25 + '%',
+					display: 'flex',
+					flexFlow: 'row',
+					justifyContent: 'start',
+					alignItems: 'center',
+                }
+			},
+			winLossBoxStyle(){
+			    return{
+			    	width: 50 + '%',
+                    height: 100 + '%',
+				    display: 'flex',
+				    flexFlow: 'row',
+				    justifyContent: 'start',
+				    alignItems: 'center',
+                }
+            },
 			timeStatsContainerStyle(){
 				return{
 					width: 90 + '%',
@@ -478,8 +515,17 @@
             signedInUser(){
 				return this.$store.state.signedInUser
             },
+            userWins(){
+			    return this.$store.state.signedInUser.pvpStats.wins
+            },
+            userLosses(){
+	            return this.$store.state.signedInUser.pvpStats.losses
+            },
+            userExperience(){
+				return this.$store.state.signedInUser.pvpStats.experience
+            },
             signedInUserName(){
-			    return this.$store.state.signedInUser.userGoogleName
+			    return this.$store.state.signedInUser.googleUserName
             }
 		},
 		methods:{
@@ -534,11 +580,6 @@
         background-size: 400% 400%;
         animation: gradient 10s ease infinite;
         transition: 0.2s ease;
-    }
-
-    .details-container:hover{
-        transform-origin: center;
-        transform: scale(1.1)
     }
 
     @keyframes gradient {
