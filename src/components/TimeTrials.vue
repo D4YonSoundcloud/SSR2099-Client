@@ -232,10 +232,10 @@
                         27,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,27,
                         26,26,26,26,26,26,26,26,26,26,
                         0 ,0 ,0 ,0 ,0 ,0 ,25,0 ,0 ,0 ,
-                        25,26,26,26,26,0 ,25,0 ,26,26,
+                        26,26,26,26,26,0 ,25,0 ,26,26,
                         25,25,25,25,25,1 ,25,0 ,25,25,
                         0 ,0 ,25,0 ,99,26,25,0 ,0 ,0 ,
-                        26,0 ,25,0 ,25,25,25,26,26,26,
+                        26,0 ,25,0 ,26,25,25,26,26,26,
                         26,0 ,25,0 ,0 ,0 ,0 ,0 ,0 ,25,
                         26,0 ,25,26,26,26,26,26,0 ,25,
                         26,0 ,0 ,0 ,0 ,0 ,0 ,25,0 ,25,
@@ -330,7 +330,7 @@
                 stepCount: 0,
 	            playerOneStepSoundEffect: new Audio(require('../assets/Step1.wav')),
                 localhostURL: 'http://localhost:4000',
-                developmentURL: 'https://stark-thicket-52069.herokuapp.com/',
+                developmentURL: 'https://stark-thicket-52069.herokuapp.com',
                 showNewBestTime: false,
                 framesPerSecond: 60,
                 prevTick: 0,
@@ -772,7 +772,7 @@
 
                     if(this.boardState[playerIndex + 10] === 99) {
 
-                        if(this.playAll === false){
+                        if(this.playAll === false) {
                             this.timeTrialFinished = true
                         }
 
@@ -886,10 +886,12 @@
                     return
 	            }
 
-            	this.timeTrialTimerTime = ((performance.now() - this.timeTrialStartTime) * 0.001);
-            	this.timeTrialTimerTime = Math.round((this.timeTrialTimerTime + Number.EPSILON) * 1000) / 1000;
+                setTimeout(() => {
+                    this.timeTrialTimerTime = ((performance.now() - this.timeTrialStartTime) * 0.001);
+                    this.timeTrialTimerTime = Math.round((this.timeTrialTimerTime + Number.EPSILON) * 1000) / 1000;
 
-            	requestAnimationFrame(this.animateTimer)
+                    requestAnimationFrame(this.animateTimer)
+                }, 1000/45)
             },
             playAllTimeTrials(){
                 this.playAll = true;
@@ -933,7 +935,7 @@
 	                this.showNewBestTime = true
 	                console.log('about to update the best time for the first time', requestBody)
 
-	                return axios.put(`${this.localhostURL}/updateBestTime`, requestBody).then(response => {
+	                return axios.put(`${this.developmentURL}/updateBestTime`, requestBody).then(response => {
 		                console.log(response.data)
 		                this.$store.dispatch('getUpdateUserTimes', response.data).then(() => {
 			                console.log('we have done the store action')
@@ -955,7 +957,7 @@
 	                this.showNewBestTime = true
 	                console.log('about to update the best time', requestBody)
 
-	                return axios.put(`${this.localhostURL}/updateBestTime`, requestBody).then(response => {
+	                return axios.put(`${this.developmentURL}/updateBestTime`, requestBody).then(response => {
 		                console.log(response.data)
 		                this.$store.dispatch('getUpdateUserTimes', response.data).then(() => {
 			                console.log('we have done the store action')
@@ -974,7 +976,7 @@
 		                stepAccuracy: this.stepAccuracy,
 	                }
 
-	                axios.put(`${this.localhostURL}/updateTime`, requestBody).then(response => {
+	                axios.put(`${this.developmentURL}/updateTime`, requestBody).then(response => {
 		                console.log(response.data)
 		                this.$store.dispatch('getUpdateUserTimes', response.data).then(() => {
 			                console.log('we have done the store action')

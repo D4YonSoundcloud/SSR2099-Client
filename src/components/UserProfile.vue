@@ -261,13 +261,13 @@
                     <div :style="detailViewTimeTrial['time-trial-all'] ? timeTitleDetailedStyle : timeTitleStyle">
                         <p :style="pStyle">TIME TRIAL ALL -
                             <strong :style="strongStyle">
-                                {{signedInUser['time-trial-all'].bestTime === null ? '...' : signedInUser['time-trial-all'].bestTime.time + 's'}}
+                                {{signedInUser['time-trial-all'].bestTime === null ? '...' : signedInUser['time-trial-all'].bestTime.time.toFixed(2) + 's'}}
                             </strong>
                         </p>
                     </div>
                     <div :style="detailViewTimeTrial['time-trial-all'] ? timePreviewDetailedStyle : timePreviewStyle">
                         <div :style="timePreviewContainerStyle" v-for="(time, index) in signedInUserPreview('time-trial-all')">
-                            <p :style="timePreviewPStyle">{{time.time}}</p>
+                            <p :style="timePreviewPStyle">{{time.time.toFixed(2)}}</p>
                             <p :style="timePreviewPDateStyle">{{datetime.fromMillis(time.date).toLocaleString({month: 'numeric', day: 'numeric'})}}</p>
                         </div>
                         <div :style="timePreviewShowDetailsStyle" class="details-container">
@@ -525,7 +525,7 @@
 				return this.$store.state.signedInUser.pvpStats.experience
             },
             signedInUserName(){
-			    return this.$store.state.signedInUser.googleUserName
+			    return this.$store.state.signedInUser['userGoogleName']
             }
 		},
 		methods:{

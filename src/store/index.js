@@ -21,7 +21,7 @@ export default new Vuex.Store({
       console.log(payload)
 
       state.signedInUser.userId = payload.userId
-      state.signedInUser.googleUserName = payload.userGoogleName
+      state.signedInUser.userGoogleName = payload.userGoogleName
       state.signedInUser['time-trial-I'] = payload['time-trial-I']
       state.signedInUser['time-trial-II'] = payload['time-trial-II']
       state.signedInUser['time-trial-III'] = payload['time-trial-III']

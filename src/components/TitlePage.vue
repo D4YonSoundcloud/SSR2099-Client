@@ -28,7 +28,7 @@
         data(){
 			return{
 				localhostURL: 'http://localhost:4000',
-                developmentURL: 'https://stark-thicket-52069.herokuapp.com/',
+                developmentURL: 'https://stark-thicket-52069.herokuapp.com',
                 userLoggedIn: false,
             }
         },
@@ -140,7 +140,7 @@
 		                userGoogleName: googleUser.At.Ve
 	                }
 
-	                axios.post(`${this.localhostURL}/login`, userInfo).then( response => {
+	                axios.post(`${this.developmentURL}/login`, userInfo).then( response => {
 		                this.$store.dispatch('getSignInUser', response.data)
 		                this.userLoggedIn = true;
 		                this.$router.push('/')
