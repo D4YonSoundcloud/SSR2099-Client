@@ -1,5 +1,13 @@
 <template>
     <div class="time-trial-body" :style="timeTrialBodyStyle">
+        <div :style="timeTrialCharacterSelectContainerStyle" v-if="timeTrialSelected === undefined">
+            <button v-for="(character,index) in characterList" :class="classCharacterLookUpTable[character]"
+                    :style="selectedCharacter === character ? characterButtonSelectedStyle : characterButtonStyle"
+                    :key="index" @click="selectedCharacter = character">
+                <h1 style="width: 100%">{{character}}</h1>
+            </button>
+        </div>
+
         <div :style="timeTrialSelectionContainerStyle" v-if="timeTrialSelected === undefined">
             <button class="time-trial-button" :style="timeTrialButtonStyle" @click="goToTimeTrial('time-trial-I', 1)" >
                 <h1 style="width: 100%">TIME-TRIAL I</h1>
@@ -40,7 +48,7 @@
             <BoardPiece :pieceIndex="index"  v-for="(piece, index) in boardState" :key="index" class="board-piece"
                         :playerOneLives="50" :playerOneStatus="'normal'"
                         :state="piece" :playerIndex="index === playerIndex ? playerIndex : undefined"
-                        :playerUserName="'D4Y'"
+                        :playerUserName="selectedCharacter"
                         :playerOneButtonPressed="index === playerIndex ? playerOneButtonPressed : undefined"
                         :pieceWidth="50" :playerStatus="'normal'"
                         :pieceHeight="50">
@@ -328,6 +336,13 @@
                 playerStatus: 'normal',
                 wallHitCount: 0,
                 stepCount: 0,
+                characterList: ['D4Y', 'KABBAGE', 'GOOB'],
+                selectedCharacter: 'D4Y',
+                classCharacterLookUpTable:{
+                    'D4Y': 'characterD4Y',
+                    'KABBAGE': 'characterKABBAGE',
+                    'GOOB': 'characterGOOB',
+                },
 	            playerOneStepSoundEffect: new Audio(require('../assets/Step1.wav')),
                 localhostURL: 'http://localhost:4000',
                 developmentURL: 'https://stark-thicket-52069.herokuapp.com',
@@ -337,11 +352,61 @@
             }
         },
         computed:{
+	        timeTrialCharacterSelectContainerStyle(){
+	        	return{
+	                display: 'flex',
+                    flowFlow: 'row',
+                    height: 15 + '%',
+                    width: 65 + '%',
+                    justifyContent: 'center',
+                    alignItems: 'flex-end',
+                }
+            },
+            characterButtonStyle(){
+	            return{
+		            display: 'flex',
+		            fontSize: 1 + 'em',
+		            fontFamily: "'Viga', sans-serif",
+		            outline: 'none',
+		            border: 'none',
+		            color: '#ab35d6',
+		            textShadow: 'rgb(148 9 199) 0px 0px 7px',
+		            margin: 8 + 'px',
+		            paddingTop: 2 + 'px',
+		            paddingBottom: 2 + 'px',
+		            backgroundColor: 'rgba(0,0,0,0)',
+		            boxShadow: '0 0 1px 1px #ab35d6',
+		            cursor: 'pointer',
+		            borderRadius: '4px',
+		            transition: 0.2 + 's ease',
+		            width: 275 + 'px',
+	            }
+            },
+	        characterButtonSelectedStyle(){
+		        return{
+			        display: 'flex',
+			        fontSize: 1 + 'em',
+			        fontFamily: "'Viga', sans-serif",
+			        outline: 'none',
+			        border: 'none',
+			        color: 'white',
+			        textShadow: 'rgb(90,90,90) 0px 0px 7px',
+			        margin: 8 + 'px',
+			        paddingTop: 2 + 'px',
+			        paddingBottom: 2 + 'px',
+			        backgroundColor: 'rgba(0,0,0,0)',
+			        boxShadow: '0 0 1px 1px white',
+			        cursor: 'pointer',
+			        borderRadius: '4px',
+			        transition: 0.2 + 's ease',
+			        width: 275 + 'px',
+		        }
+	        },
             timeTrialSelectionContainerStyle(){
                 return{
                     display: 'flex',
                     flexFlow: 'column',
-                    height: 50 + '%',
+                    height: 80 + '%',
                     width: 40 + '%',
                     justifyContent: 'center',
                     alignItems: 'center',
@@ -356,10 +421,9 @@
                     border: 'none',
                     color: 'rgb(255,239,0)',
                     textShadow: '0 0 7px gold',
-                    padding: 8 + 'px',
-                    paddingLeft: 16 + 'px',
-                    paddingRight: 16 + 'px',
                     margin: 8 + 'px',
+                    paddingTop: 2 + 'px',
+                    paddingBottom: 2 + 'px',
                     backgroundColor: 'rgba(0,0,0,0)',
                     boxShadow: '0 0 1px 1px rgb(255,239,0)',
                     cursor: 'pointer',
@@ -371,7 +435,7 @@
             timeTrialBodyStyle(){
                 return{
                     display: 'flex',
-                    flexFlow: 'row',
+                    flexFlow: this.timeTrialSelected === 'time-trial-all' ? 'row' : 'column',
                     height: 100 + 'vh',
                     width: 100 + 'vw',
                     justifyContent: 'center',
@@ -1012,6 +1076,47 @@
     }
 
     .time-trial-button:hover{
-        transform: translateX(15px);
+        transform: scaleY(1.35) scaleX(1.10);
     }
+
+    .characterD4Y{
+        transform-origin: left;
+    }
+
+    .characterKABBAGE{
+        transform-origin: center;
+    }
+
+    .characterGOOB{
+        transform-origin: right;
+    }
+
+    .characterD4Y:hover{
+        transform-origin: left;
+        width: 325px !important;
+    }
+    .characterD4Y:hover + .characterKABBAGE{
+        width: 225px !important;
+    }
+
+    .characterKABBAGE:hover{
+        width: 325px !important;
+    }
+    .characterKABBAGE:hover + .characterD4Y + .characterGOOB{
+        width: 225px !important;
+    }
+
+    .characterGOOB:hover{
+        transform-origin: right;
+        width: 325px !important;
+    }
+    .characterGOOB:hover + .characterKABBAGE{
+        width: 225px !important;
+    }
+
+
+
+
+
+
 </style>
