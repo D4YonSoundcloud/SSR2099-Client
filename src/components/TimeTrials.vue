@@ -1024,6 +1024,12 @@
             },
             updateTime(timeTrial, time, all){
                 console.log(timeTrial, time, 'about to update time', this.signedInUser[timeTrial].bestTime)
+
+                if(Object.keys(this.signedInUser).length === 0){
+                	return console.log('the time trial is finished')
+                }
+
+
                 if(this.signedInUser[timeTrial].bestTime === null){
 
 	                let requestBody = {
