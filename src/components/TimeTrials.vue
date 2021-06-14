@@ -9,6 +9,9 @@
         </div>
 
         <div :style="timeTrialSelectionContainerStyle" v-if="timeTrialSelected === undefined">
+            <button class="time-trial-button"  :style="timeTrialButtonStyle" @click="playAllTimeTrials()" >
+                <h1 style="width: 100%">TIME-TRIAL ALL</h1>
+            </button>
             <button class="time-trial-button" :style="timeTrialButtonStyle" @click="goToTimeTrial('time-trial-I', 1)" >
                 <h1 style="width: 100%">TIME-TRIAL I</h1>
             </button>
@@ -39,8 +42,8 @@
             <button class="time-trial-button"  :style="timeTrialButtonStyle" @click="goToTimeTrial('time-trial-X', 1)" >
                 <h1 style="width: 100%">TIME-TRIAL X</h1>
             </button>
-            <button class="time-trial-button"  :style="timeTrialButtonStyle" @click="playAllTimeTrials()" >
-                <h1 style="width: 100%">TIME-TRIAL ALL</h1>
+            <button class="time-trial-button"  :style="timeTrialButtonStyle" @click="goToTimeTrialCustom()">
+                <h1 style="width: 100%">TIME-TRIAL CUSTOM</h1>
             </button>
         </div>
 
@@ -260,6 +263,7 @@
                         27,0 ,0 ,26,0 ,0 ,26,0 ,0 ,27,
                         27,99,26,0 ,0 ,0 ,0 ,26,0 ,27,
                     ],
+                    'time-trial-custom': undefined,
                 },
                 timeTrialStarterIndexes:{
                     'time-trial-I': 1,
@@ -435,7 +439,7 @@
             timeTrialBodyStyle(){
                 return{
                     display: 'flex',
-                    flexFlow: this.timeTrialSelected === 'time-trial-all' ? 'row' : 'column',
+                    flexFlow: this.playAll === true ? 'row' : 'column',
                     height: 100 + 'vh',
                     width: 100 + 'vw',
                     justifyContent: 'center',
@@ -668,6 +672,7 @@
             handleLeftKey(currentIndex, playerState, eventKeyCode){
                 if ((currentIndex + 1)%10 === 1) {
                     if(this.timeTrialSelected === 'time-trial-IV') return this.playStepSound()
+                    if(this.timeTrialSelected === 'time-trial-V') return this.playStepSound()
 
                     if(this.boardState[currentIndex + (10 - 1)] === 25) return this.playStepSound(playerState)
                     if(this.boardState[currentIndex + (10 - 1)] === 26) return this.playStepSound(playerState)
@@ -858,6 +863,8 @@
                 }
             },
             swap(nonPlayerIndex, newPlayerIndex, keyCode, indexString){
+                console.log('this is happening', this.boardState, newPlayerIndex)
+
                 indexString = 'playerIndex';
                 //decide if this is player 1 or player 2
                 let playerState = 1
@@ -870,9 +877,13 @@
 
                 //code for deciding if it is the 1st or 2nd player
                 this.playerIndex = newPlayerIndex;
+                console.log('this is happening', this.boardState)
                 this[indexString] = this.playerIndex;
-                this.boardState[this[indexString]] = playerState
-                this.boardState[this[indexString] + this.swapLookUpTable[keyCode]] = temp;
+                console.log('this is happening', this.boardState)
+                this.boardState[parseFloat(this.playerIndex)] = playerState
+                console.log('this is happening', this.boardState)
+                this.boardState[parseFloat(this.playerIndex + this.swapLookUpTable[keyCode])] = temp;
+                console.log('this is happening', this.boardState)
 
 
             },
@@ -881,6 +892,25 @@
                 this.boardState = [...this.timeTrialSelection[timeTrial]];
                 this.timeTrialSelected = timeTrial;
                 this.playerIndex = playerIndex
+            },
+            async goToTimeTrialCustom(){
+                let customMap = await prompt('Enter custom map (ex: [0,0,0...] must be 100 tiles.')
+
+                this.parseCustomTimeTrial(customMap).then(() => {
+                    let playerIndex;
+
+                    for(let i = 0; i <= this.timeTrialSelection['time-trial-custom'].length - 1; i++){
+                        if(this.timeTrialSelection['time-trial-custom'][i] === 1) {
+                            playerIndex = i;
+                            if(this.timeTrialSelection['time-trial-custom']){
+                                return this.goToTimeTrial('time-trial-custom', parseFloat(playerIndex))
+                            }
+                        }
+                    }
+                })
+            },
+            async parseCustomTimeTrial(customTimeTrial){
+                this.timeTrialSelection['time-trial-custom'] = await JSON.parse(customTimeTrial)
             },
             restartTimeTrial(timeTrial){
                 console.log(this.timeTrialStarterIndexes[timeTrial])
@@ -895,7 +925,15 @@
                 this.runStarted = false
                 this.tilesPerSecond = undefined
                 this.showNewBestTime = false;
-                this.playerIndex = this.timeTrialStarterIndexes[timeTrial];
+                if(this.timeTrialSelected === 'time-trial-custom'){
+                    for(let i = 0; i <= this.timeTrialSelection['time-trial-custom'].length - 1; i++){
+                        if(this.timeTrialSelection['time-trial-custom'][i] === 1) {
+                            this.playerIndex = i
+                        }
+                    }
+                } else {
+                    this.playerIndex = this.timeTrialStarterIndexes[timeTrial];
+                }
 
                 this.prevTick = 0;
 
@@ -959,6 +997,7 @@
             },
             playAllTimeTrials(){
                 this.playAll = true;
+                this.timeTrialSelected = 'time-trial-all'
                 this.goToTimeTrial('time-trial-I', 1)
             },
             goToNextPlayAllStage(){
