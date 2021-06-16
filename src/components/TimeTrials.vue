@@ -42,9 +42,6 @@
             <button class="time-trial-button"  :style="timeTrialButtonStyle" @click="goToTimeTrial('time-trial-X', 1)" >
                 <h1 style="width: 100%">TIME-TRIAL X</h1>
             </button>
-            <button class="time-trial-button"  :style="timeTrialButtonStyle" @click="goToTimeTrial('time-trial-XI', 0)" >
-                <h1 style="width: 100%">TIME-TRIAL XI</h1>
-            </button>
             <button class="time-trial-button"  :style="timeTrialButtonStyle" @click="openMapInput(true)">
                 <h1 style="width: 100%">TIME-TRIAL CUSTOM</h1>
             </button>
@@ -276,18 +273,6 @@
                         27,0 ,0 ,26,0 ,0 ,26,0 ,0 ,27,
                         27,99,26,0 ,0 ,0 ,0 ,26,0 ,27,
                     ],
-                    'time-trial-XI':[
-                        1 ,0 ,this.mP(2, 23, 'purple'),0 ,0 ,this.mP(5, 27, 'green') ,0 ,0 ,0 ,0 , // 9
-                        26,26,26,26,26,26,26,26,26,0 ,
-                        25,0 ,0 ,this.mP(2, 23, 'purple'),0 ,0 ,0 ,this.mP(5, 27, 'green'),25,0 ,
-                        25,0 ,26,26,26,26,26,0 ,25,0 ,
-                        25,0 ,25,0 ,0 ,99,25,0 ,25,0 , // 48
-                        25,this.mP(51, 53, 'blue'),25,this.mP(51, 53, 'blue'  ),26,26,26,0 ,25,0 ,
-                        25,0 ,25,0 ,0 ,0 ,0 ,0 ,25,0 ,
-                        25,0 ,26,26,26,26,26,26,25,0 ,
-                        25,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 , // 8
-                        26,26,26,26,26,26,26,26,26,26,
-                    ],
                     'time-trial-custom': undefined,
                 },
                 timeTrialStarterIndexes:{
@@ -301,7 +286,6 @@
                     'time-trial-VIII': 0,
                     'time-trial-IX': 45,
                     'time-trial-X': 1,
-                    'time-trial-XI': 0,
                 },
                 timeTrialNumberOfTiles:{
                     'time-trial-I': 16,
@@ -314,7 +298,6 @@
                     'time-trial-VIII': 17,
                     'time-trial-IX': 39,
                     'time-trial-X': 26,
-                    'time-trial-XI': 3,
                 },
                 playAll: false,
                 playAllCounter: 0,

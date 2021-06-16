@@ -154,9 +154,14 @@
                     'fire': '1px inset orange'
                 },
                 hueDegrees:{
-                    'purple': 260,
-                    'green': 50,
-                    'blue': 130,
+	                'purple': 260,
+	                'green': 50,
+	                'lightpurple': 190,
+	                'blue': 130,
+	                'yellow': 0,
+	                'aqua': 80,
+	                'orange': 300,
+	                'red': 295,
                 }
 			}
 		},
