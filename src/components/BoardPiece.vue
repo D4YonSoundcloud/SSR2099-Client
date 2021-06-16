@@ -1,9 +1,14 @@
 <template>
     <div class="board-piece" :style="boardPieceStyle">
-        <div :id="pieceId" class="board-piece-inside" :style="boardPieceInsideStyle">
+        <div class="board-piece-portal" v-if="checkIfObject(state)" :style="boardPieceInsidePortalStyle">
+            <div class="board-piece-object-sprite rotate" :style="boardPiecePortalSpriteStyle"></div>
+        </div>
+
+        <div :id="pieceId" class="board-piece-inside" v-else :style="boardPieceInsideStyle">
 <!--            <p v-if="playerIndex !== undefined" :style="playerStyle"> {{playerStatusText[playerStatus]}} </p>-->
 <!--            <p v-if="enemyIndex !== undefined" :style="playerStyle"> {{playerStatusText[enemyStatus]}} </p>-->
         </div>
+
 <!--        <div class="board-piece-eyes" :style="boardPieceEyesStyle">-->
 <!--        </div>-->
     </div>
@@ -28,6 +33,7 @@
                     25: 'rgba(0,0,0,0)',
                     26: 'rgba(0,0,0,0)',
                     27: 'rgba(0,0,0,0)',
+                    50: 'rgba(0,0,0,0)',
                     99: 'rgba(0,0,0,0)',
                     100: 'rgba(0,0,0,0)',
                 },
@@ -147,6 +153,11 @@
                     'firing': '3px inset red',
                     'fire': '1px inset orange'
                 },
+                hueDegrees:{
+                    'purple': 260,
+                    'green': 50,
+                    'blue': 130,
+                }
 			}
 		},
 		computed:{
@@ -178,6 +189,34 @@
                     backgroundSize: (this.state === 25 || this.state === 27) ? '100% 100%' : '',
                     zIndex: 100,
 	            }
+            },
+            boardPieceInsidePortalStyle(){
+                return {
+                    height: 50 + 'px',
+                    width: 50 + 'px',
+                    backgroundColor: this.boardPieceColors[50],
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    borderRadius: this.boardPieceBorderRadiusLookUpTable[50] + '%',
+                    backgroundImage: this.backgroundSprite[0],
+                    transformOrigin: 'center',
+                    zIndex: 100,
+                }
+            },
+            boardPiecePortalSpriteStyle(){
+			    return{
+                    height: 50 + 'px',
+                    width: 50 + 'px',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    borderRadius: this.boardPieceBorderRadiusLookUpTable[50] + '%',
+                    backgroundImage: `url(${require('../assets/portal-tile-1.png')})`,
+                    filter: 'sepia() saturate(1000%) hue-rotate(' + this.hueDegrees[this.state.color] + 'deg)',
+                    transformOrigin: 'center',
+                    zIndex: 10,
+                }
             },
             boardPieceEyesStyle(){
                 return {
@@ -227,13 +266,6 @@
 			    	return this.backgroundSprite[this.state]
                 }
             },
-            filter(){
-			    if(this.state === 10 || this.state === 11){
-			    	return 'drop-shadow(0px 0px 2px #f53333)';
-                } else {
-			        return 'none';
-                }
-            },
 			pieceId(){
 				return this.makeId(5)
 			}
@@ -275,6 +307,10 @@
 				}
 				return result.join('');
 			},
+            checkIfObject(state){
+                console.log(state.color, this.hueDegrees[state.color])
+			    return typeof state === 'object' && state !== null
+            }
 		},
 		// created(){
 		// 	console.log(this.state, this.pieceIndex, this.pieceWidth, this.pieceHeight)
@@ -305,6 +341,19 @@
 
         40%, 60% {
             transform: translate3d(4px, -10px, 0);
+        }
+    }
+
+    .rotate {
+        animation: rotation 5s infinite linear;
+    }
+
+    @keyframes rotation {
+        from {
+            transform: rotate(0deg);
+        }
+        to {
+            transform: rotate(359deg);
         }
     }
 </style>

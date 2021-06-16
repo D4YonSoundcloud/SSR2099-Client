@@ -42,9 +42,22 @@
             <button class="time-trial-button"  :style="timeTrialButtonStyle" @click="goToTimeTrial('time-trial-X', 1)" >
                 <h1 style="width: 100%">TIME-TRIAL X</h1>
             </button>
-            <button class="time-trial-button"  :style="timeTrialButtonStyle" @click="goToTimeTrialCustom()">
+            <button class="time-trial-button"  :style="timeTrialButtonStyle" @click="goToTimeTrial('time-trial-XI', 0)" >
+                <h1 style="width: 100%">TIME-TRIAL XI</h1>
+            </button>
+            <button class="time-trial-button"  :style="timeTrialButtonStyle" @click="openMapInput(true)">
                 <h1 style="width: 100%">TIME-TRIAL CUSTOM</h1>
             </button>
+        </div>
+
+        <div class="main-map-input-container" v-if="showTimeTrialInput">
+            <div class="main-map-input">
+            <textarea v-model="newMapString" name="" id="set-map-textarea" cols="30" rows="30" class="set-map-textarea"></textarea>
+            </div>
+            <div class="main-map-button-container">
+                <button @click="closeMapInput(false)" class="set-map-back-button"><-</button>
+                <button @click="setNewMap(newMapString)" class="set-map-button">SET MAP</button>
+            </div>
         </div>
 
         <div class="board" :style="timeTrialBoardStyle" v-if="timeTrialSelected !== undefined">
@@ -263,6 +276,18 @@
                         27,0 ,0 ,26,0 ,0 ,26,0 ,0 ,27,
                         27,99,26,0 ,0 ,0 ,0 ,26,0 ,27,
                     ],
+                    'time-trial-XI':[
+                        1 ,0 ,this.mP(2, 23, 'purple'),0 ,0 ,this.mP(5, 27, 'green') ,0 ,0 ,0 ,0 , // 9
+                        26,26,26,26,26,26,26,26,26,0 ,
+                        25,0 ,0 ,this.mP(2, 23, 'purple'),0 ,0 ,0 ,this.mP(5, 27, 'green'),25,0 ,
+                        25,0 ,26,26,26,26,26,0 ,25,0 ,
+                        25,0 ,25,0 ,0 ,99,25,0 ,25,0 , // 48
+                        25,this.mP(51, 53, 'blue'),25,this.mP(51, 53, 'blue'  ),26,26,26,0 ,25,0 ,
+                        25,0 ,25,0 ,0 ,0 ,0 ,0 ,25,0 ,
+                        25,0 ,26,26,26,26,26,26,25,0 ,
+                        25,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 , // 8
+                        26,26,26,26,26,26,26,26,26,26,
+                    ],
                     'time-trial-custom': undefined,
                 },
                 timeTrialStarterIndexes:{
@@ -276,6 +301,7 @@
                     'time-trial-VIII': 0,
                     'time-trial-IX': 45,
                     'time-trial-X': 1,
+                    'time-trial-XI': 0,
                 },
                 timeTrialNumberOfTiles:{
                     'time-trial-I': 16,
@@ -288,6 +314,7 @@
                     'time-trial-VIII': 17,
                     'time-trial-IX': 39,
                     'time-trial-X': 26,
+                    'time-trial-XI': 3,
                 },
                 playAll: false,
                 playAllCounter: 0,
@@ -337,6 +364,12 @@
                     'rightWall': 9,
                     'leftWall': -9,
                 },
+                portalOutLookUpTable:{
+                    'right': 1,
+                    'left': -1,
+                    'down': 10,
+                    'up': -10,
+                },
                 playerStatus: 'normal',
                 wallHitCount: 0,
                 stepCount: 0,
@@ -353,6 +386,8 @@
                 showNewBestTime: false,
                 framesPerSecond: 60,
                 prevTick: 0,
+                showTimeTrialInput: false,
+                newMapString: '',
             }
         },
         computed:{
@@ -370,7 +405,7 @@
 	            return{
 		            display: 'flex',
 		            fontSize: 1 + 'em',
-		            fontFamily: "'Viga', sans-serif",
+		            fontFamily: "'Orbitron', sans-serif",
 		            outline: 'none',
 		            border: 'none',
 		            color: '#ab35d6',
@@ -390,7 +425,7 @@
 		        return{
 			        display: 'flex',
 			        fontSize: 1 + 'em',
-			        fontFamily: "'Viga', sans-serif",
+			        fontFamily: "'Orbitron', sans-serif",
 			        outline: 'none',
 			        border: 'none',
 			        color: 'white',
@@ -420,7 +455,7 @@
                 return{
                     display: 'flex',
                     fontSize: 1 + 'em',
-                    fontFamily: "'Viga', sans-serif",
+                    fontFamily: "'Orbitron', sans-serif",
                     outline: 'none',
                     border: 'none',
                     color: 'rgb(255,239,0)',
@@ -619,7 +654,12 @@
                 }
             },
             handleRightKey(currentIndex, playerState, eventKeyCode){
+
                 if ((currentIndex + 1)%10 === 0) {
+                    if(this.checkIfObject(this.boardState[currentIndex - (10 - 1)])) {
+                        return this.handlePortal(this.boardState[currentIndex - (10 - 1)],currentIndex - (10 - 1), 'right')
+                    }
+
                     if(this.timeTrialSelected === 'time-trial-V') return this.playStepSound()
 
                     if(this.boardState[currentIndex - (10 - 1)] === 25 ) return this.playStepSound(playerState)
@@ -645,6 +685,10 @@
 
                     this.swap(currentIndex - (10 - 1), currentIndex - (10 - 1), 'rightWall', eventKeyCode)
                 } else {
+                    if(this.checkIfObject(this.boardState[currentIndex + 1])) {
+                        return this.handlePortal(this.boardState[currentIndex + 1],currentIndex + 1,'right')
+                    }
+
                     if(this.boardState[currentIndex + 1] === 25) return this.playStepSound(playerState)
                     if(this.boardState[currentIndex + 1] === 26) return this.playStepSound(playerState)
                     if(this.boardState[currentIndex + 1] === 27) return this.playStepSound(playerState)
@@ -671,6 +715,10 @@
             },
             handleLeftKey(currentIndex, playerState, eventKeyCode){
                 if ((currentIndex + 1)%10 === 1) {
+                    if(this.checkIfObject(this.boardState[currentIndex + (10 - 1)])) {
+                        return this.handlePortal(this.boardState[currentIndex + (10 - 1)],currentIndex + (10 - 1), 'right')
+                    }
+
                     if(this.timeTrialSelected === 'time-trial-IV') return this.playStepSound()
                     if(this.timeTrialSelected === 'time-trial-V') return this.playStepSound()
 
@@ -697,6 +745,10 @@
 
                     this.swap(currentIndex + (10 - 1), currentIndex + (10 - 1), 'leftWall', eventKeyCode)
                 } else {
+                    if(this.checkIfObject(this.boardState[currentIndex - 1])) {
+                        return this.handlePortal(this.boardState[currentIndex - 1],currentIndex - 1,'left')
+                    }
+
                     if(this.boardState[currentIndex - 1] === 25) return this.playStepSound(playerState)
                     if(this.boardState[currentIndex - 1] === 26) return this.playStepSound(playerState)
                     if(this.boardState[currentIndex - 1] === 27) return this.playStepSound(playerState)
@@ -765,6 +817,10 @@
                     this.boardState[oldPlayerIndex] = temp;
                     return console.log('there is no wall here')
                 } else {
+                    if(this.checkIfObject(this.boardState[currentIndex - 10])) {
+                        return this.handlePortal(this.boardState[currentIndex - 10],currentIndex - 10,'up')
+                    }
+
                     if(this.boardState[playerIndex - 10] === 25) return this.playStepSound()
                     if(this.boardState[playerIndex - 10] === 26) return this.playStepSound()
                     if(this.boardState[playerIndex - 10] === 27) return this.playStepSound()
@@ -834,6 +890,9 @@
 
                     return console.log('there is no wall here')
                 } else {
+                    if(this.checkIfObject(this.boardState[currentIndex + 10])) {
+                        return this.handlePortal(this.boardState[currentIndex + 10],currentIndex + 10,'down')
+                    }
 
                     if(this.boardState[playerIndex + 10] === 25) return this.playStepSound()
                     if(this.boardState[playerIndex + 10] === 26) return this.playStepSound()
@@ -893,24 +952,31 @@
                 this.timeTrialSelected = timeTrial;
                 this.playerIndex = playerIndex
             },
-            async goToTimeTrialCustom(){
-                let customMap = await prompt('Enter custom map (ex: [0,0,0...] must be 100 tiles.')
-
-                this.parseCustomTimeTrial(customMap).then(() => {
+            async goToTimeTrialCustom(newMapString){
+                this.parseCustomTimeTrial(newMapString).then(() => {
                     let playerIndex;
+                    console.log('about to loop through')
 
                     for(let i = 0; i <= this.timeTrialSelection['time-trial-custom'].length - 1; i++){
-                        if(this.timeTrialSelection['time-trial-custom'][i] === 1) {
-                            playerIndex = i;
-                            if(this.timeTrialSelection['time-trial-custom']){
-                                return this.goToTimeTrial('time-trial-custom', parseFloat(playerIndex))
+                        if(this.checkIfObject(this.timeTrialSelection['time-trial-custom'][i])){
+                            console.log('this is an portal!')
+                        } else {
+                            if(this.timeTrialSelection['time-trial-custom'][i] === 1) {
+                                console.log(i)
+                                playerIndex = i;
+                                if(this.timeTrialSelection['time-trial-custom']){
+                                    this.newMapString = '';
+                                    return this.goToTimeTrial('time-trial-custom', parseFloat(playerIndex))
+                                }
                             }
                         }
+
                     }
                 })
             },
             async parseCustomTimeTrial(customTimeTrial){
                 this.timeTrialSelection['time-trial-custom'] = await JSON.parse(customTimeTrial)
+                console.log(this.timeTrialSelection)
             },
             restartTimeTrial(timeTrial){
                 console.log(this.timeTrialStarterIndexes[timeTrial])
@@ -1093,6 +1159,48 @@
 	                })
                 }
             },
+            //short for makePortal
+            mP(start, end, color){
+                return {
+                    "start": start,
+                    "end": end,
+                    "color": color,
+                    "value": 50,
+                }
+            },
+            handlePortal(portal, newIndex, direction){
+
+                console.log(portal, newIndex, direction)
+
+                if(newIndex === portal.start){
+                    let tempTileIndex = this.playerIndex
+                    this.playerIndex = portal["end"];
+                    this.boardState[this.playerIndex + this.portalOutLookUpTable[direction]] = 1
+                    this.playerIndex = this.playerIndex + this.portalOutLookUpTable[direction]
+                    this.boardState[tempTileIndex] = 0;
+                } else {
+                    let tempTileIndex = this.playerIndex
+                    this.playerIndex = portal["start"];
+                    this.boardState[this.playerIndex + this.portalOutLookUpTable[direction]] = 1
+                    this.playerIndex = this.playerIndex + this.portalOutLookUpTable[direction]
+                    this.boardState[tempTileIndex] = 0;
+                }
+
+            },
+            openMapInput(open){
+                this.showTimeTrialInput = open;
+            },
+            closeMapInput(open){
+                this.showTimeTrialInput = open;
+            },
+            setNewMap(newMapString){
+                this.goToTimeTrialCustom(newMapString)
+                this.showTimeTrialInput = false;
+            },
+            checkIfObject(state){
+                return typeof state === 'object' && state !== null
+            }
+
         },
         created(){
 
@@ -1157,6 +1265,100 @@
     }
     .characterGOOB:hover + .characterKABBAGE{
         width: 225px !important;
+    }
+
+
+    .main-map-input-container{
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        margin-left: -250px;
+        margin-top: -150px;
+        height: 305px;
+        width: 500px;
+        box-shadow: 0 0 1px 1px #501177;
+        background-color: #060300;
+        border-radius: 2px;
+        display: flex;
+        flex-flow: column;
+        justify-content: center;
+        align-items: center;
+        padding: 32px 16px 16px;
+    }
+
+    .set-map-textarea{
+        background-color: #0a0015;
+        outline: none;
+        border: none;
+        color: white;
+        width: 95%;
+        height: 95%;
+        border-radius: 4px;
+        box-shadow: inset 0 0 14px 1px #290142;
+        padding-top: 15px;
+        padding-left: 15px;
+    }
+
+    .main-map-input{
+        height: 85%;
+        width: 95%;
+        border-radius: 2px;
+        display: flex;
+        justify-content: center;
+        background-color: #060300;
+        align-items: center;
+    }
+
+    .main-map-button-container{
+        height: 15%;
+        width: 95%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-flow: row;
+    }
+
+    .set-map-button{
+        height: 65%;
+        width: 35%;
+        font-size: 1.25em;
+        outline: none;
+        color: whitesmoke;
+        font-family: 'Orbitron', sans-serif;
+        background-color: #501177;
+        border: none;
+        box-shadow: 0 0 1px 1px #501177;
+        transition: 0.2s;
+        cursor: pointer;
+    }
+
+    .set-map-back-button{
+        height: 65%;
+        width: 10%;
+        font-size: 1.25em;
+        outline: none;
+        color: whitesmoke;
+        font-family: 'Orbitron', sans-serif;
+        background-color: #501177;
+        border: none;
+        box-shadow: 0 0 1px 1px #501177;
+        transition: 0.2s;
+        cursor: pointer;
+        margin-right: 8px;
+    }
+
+    .set-map-button:hover{
+        box-shadow: 0 0 20px 1px #501177;
+        height: 70%;
+        width: 37.5%;
+        cursor: pointer;
+    }
+
+    .set-map-back-button:hover{
+        box-shadow: 0 0 20px 1px #501177;
+        height: 70%;
+        width: 12.5%;
+        cursor: pointer;
     }
 
 

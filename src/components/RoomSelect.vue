@@ -156,7 +156,7 @@
 					marginTop: 6 + 'px',
 					marginBottom: 6 + 'px',
 					transition: this.transitionTime + 's ease',
-					fontFamily: "'Viga', sans-serif",
+                    fontFamily: "'Orbitron', sans-serif",
                     boxShadow: '0px 0px 7px 1px orange'
 				}
 			},
@@ -169,7 +169,7 @@
 			},
 			h1Style(){
 				return {
-					fontFamily: "'Viga', sans-serif",
+                    fontFamily: "'Orbitron', sans-serif",
 					cursor: 'pointer',
                     transition: this.transitionTime + 's ease',
 				}

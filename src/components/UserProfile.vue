@@ -318,7 +318,7 @@
 					flexFlow: 'column',
 					justifyContent: 'center',
 					alignItems: 'center',
-					fontFamily: "'Viga', sans-serif",
+					fontFamily: "'Orbitron', sans-serif",
 				}
 			},
             h1Style(){

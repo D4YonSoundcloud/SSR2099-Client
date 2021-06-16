@@ -68,7 +68,7 @@
 		        return {
 			        width: 100 + '%',
 			        height: 100 + '%',
-			        fontFamily: "'Viga', sans-serif",
+			        fontFamily: "'Orbitron', sans-serif",
 			        cursor: 'pointer',
 		        }
 	        },
@@ -210,6 +210,7 @@
 
 .online-btn:hover{
     transform: translateX(20px);
+    box-shadow: rgb(107 18 107) -5px 0px 9px 1px !important;
 }
 
 .floating-text{
