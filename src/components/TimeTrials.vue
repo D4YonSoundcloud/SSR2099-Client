@@ -1153,22 +1153,59 @@
             },
             handlePortal(portal, newIndex, direction){
 
-                console.log(portal, newIndex, direction)
+                console.log('start of handle portal', portal, newIndex, direction)
 
                 if(newIndex === portal.start){
                     let tempTileIndex = this.playerIndex
+                    let endIndex = this.boardState[portal["end"] + this.portalOutLookUpTable[direction]]
+	                //handle running into walls
+                    if(endIndex === 25 || endIndex === 26 || endIndex === 27 ){
+                    	console.log('you are hitting a wall lmao')
+                    	return this.playStepSound()
+                    }
+
                     this.playerIndex = portal["end"];
-                    this.boardState[this.playerIndex + this.portalOutLookUpTable[direction]] = 1
-                    this.playerIndex = this.playerIndex + this.portalOutLookUpTable[direction]
-                    this.boardState[tempTileIndex] = 0;
+                    console.log(this.playerIndex)
+	                if(this.checkIfObject(this.boardState[this.playerIndex + this.portalOutLookUpTable[direction]]) === true) {
+		                console.log(this.playerIndex)
+		                console.log('this is another portal you are stepping into')
+                        this.handlePortal(this.boardState[this.playerIndex + this.portalOutLookUpTable[direction]], this.playerIndex + this.portalOutLookUpTable[direction], direction)
+		                this.assignPortalTempTile(tempTileIndex)
+	                } else if (this.checkIfObject(this.boardState[this.playerIndex + this.portalOutLookUpTable[direction]]) === false){
+	                	console.log('this is not another portal')
+		                this.boardState[this.playerIndex + this.portalOutLookUpTable[direction]] = 1
+		                this.playerIndex = this.playerIndex + this.portalOutLookUpTable[direction]
+		                this.assignPortalTempTile(tempTileIndex)
+                    }
                 } else {
                     let tempTileIndex = this.playerIndex
+	                let endIndex = this.boardState[portal["start"] + this.portalOutLookUpTable[direction]]
+	                //handle running into walls
+	                if(endIndex === 25 || endIndex === 26 || endIndex === 27 ){
+		                return this.playStepSound()
+	                }
+
                     this.playerIndex = portal["start"];
-                    this.boardState[this.playerIndex + this.portalOutLookUpTable[direction]] = 1
-                    this.playerIndex = this.playerIndex + this.portalOutLookUpTable[direction]
-                    this.boardState[tempTileIndex] = 0;
+	                if(this.checkIfObject(this.boardState[this.playerIndex + this.portalOutLookUpTable[direction]]) === true) {
+		                console.log('this is another portal you are stepping into')
+		                this.handlePortal(this.boardState[this.playerIndex + this.portalOutLookUpTable[direction]], this.playerIndex + this.portalOutLookUpTable[direction], direction)
+		                this.assignPortalTempTile(tempTileIndex)
+	                } else if (this.checkIfObject(this.boardState[this.playerIndex + this.portalOutLookUpTable[direction]]) === false){
+		                console.log('this is not another portal')
+		                this.boardState[this.playerIndex + this.portalOutLookUpTable[direction]] = 1
+		                this.playerIndex = this.playerIndex + this.portalOutLookUpTable[direction]
+		                this.assignPortalTempTile(tempTileIndex)
+	                }
                 }
 
+            },
+            assignPortalTempTile(tempTile){
+	            if(this.checkIfObject(this.boardState[tempTile])){
+	            	console.log('the past tile was a portal')
+		            this.boardState[tempTile] = this.boardState[tempTile]
+	            } else {
+		            this.boardState[tempTile] = 0;
+	            }
             },
             openMapInput(open){
                 this.showTimeTrialInput = open;
