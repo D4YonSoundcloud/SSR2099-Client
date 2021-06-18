@@ -64,6 +64,7 @@
                         :playerUserName="selectedCharacter"
                         :playerOneButtonPressed="index === playerIndex ? playerOneButtonPressed : undefined"
                         :pieceWidth="50" :playerStatus="'normal'"
+                        :activePortals="activePortalsIndexes"
                         :pieceHeight="50">
             </BoardPiece>
 
@@ -371,6 +372,7 @@
                 prevTick: 0,
                 showTimeTrialInput: false,
                 newMapString: '',
+                activePortalsIndexes:[],
             }
         },
         computed:{
@@ -1151,6 +1153,9 @@
                     "value": 50,
                 }
             },
+	        /**
+             * Need to add portal activated animation
+	         */
             handlePortal(portal, newIndex, direction){
 
                 console.log('start of handle portal', portal, newIndex, direction)
@@ -1163,6 +1168,9 @@
                     	console.log('you are hitting a wall lmao')
                     	return this.playStepSound()
                     }
+
+                    this.activePortalsIndexes.push(portal["start"])
+                    this.activePortalsIndexes.push(portal["end"])
 
                     this.playerIndex = portal["end"];
                     console.log(this.playerIndex)
@@ -1185,6 +1193,9 @@
 		                return this.playStepSound()
 	                }
 
+	                this.activePortalsIndexes.push(portal["start"])
+	                this.activePortalsIndexes.push(portal["end"])
+
                     this.playerIndex = portal["start"];
 	                if(this.checkIfObject(this.boardState[this.playerIndex + this.portalOutLookUpTable[direction]]) === true) {
 		                console.log('this is another portal you are stepping into')
@@ -1206,6 +1217,10 @@
 	            } else {
 		            this.boardState[tempTile] = 0;
 	            }
+
+	            //remove start and index from the active portals
+	            this.activePortalsIndexes.shift();
+                this.activePortalsIndexes.shift();
             },
             openMapInput(open){
                 this.showTimeTrialInput = open;
