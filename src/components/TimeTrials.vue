@@ -1169,9 +1169,6 @@
                     	return this.playStepSound()
                     }
 
-                    this.activePortalsIndexes.push(portal["start"])
-                    this.activePortalsIndexes.push(portal["end"])
-
                     this.playerIndex = portal["end"];
                     console.log(this.playerIndex)
 	                if(this.checkIfObject(this.boardState[this.playerIndex + this.portalOutLookUpTable[direction]]) === true) {
@@ -1192,9 +1189,6 @@
 	                if(endIndex === 25 || endIndex === 26 || endIndex === 27 ){
 		                return this.playStepSound()
 	                }
-
-	                this.activePortalsIndexes.push(portal["start"])
-	                this.activePortalsIndexes.push(portal["end"])
 
                     this.playerIndex = portal["start"];
 	                if(this.checkIfObject(this.boardState[this.playerIndex + this.portalOutLookUpTable[direction]]) === true) {
