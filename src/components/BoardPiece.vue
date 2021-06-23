@@ -4,7 +4,7 @@
             <div class="board-piece-object-sprite rotate" :style="boardPiecePortalSpriteStyle"></div>
         </div>
 
-        <div :id="pieceId" class="board-piece-inside" v-else :style="boardPieceInsideStyle">
+        <div :id="pieceId" :class="'board-piece-inside ' + animationLookUpTable[state]" v-else :style="boardPieceInsideStyle">
 <!--            <p v-if="playerIndex !== undefined" :style="playerStyle"> {{playerStatusText[playerStatus]}} </p>-->
 <!--            <p v-if="enemyIndex !== undefined" :style="playerStyle"> {{playerStatusText[enemyStatus]}} </p>-->
         </div>
@@ -123,8 +123,18 @@
                     25: `url(${require('../assets/WALL-TILE.png')})`,
                     26: `url(${require('../assets/WALL-TILE-small-half.png')})`,
                     27: `url(${require('../assets/WALL-TILE-top.png')})`,
-                    99: `url(${require('../assets/TIME-TRIAL-FINISH-sprite.png')})`
+                    99: `url(${require('../assets/flag-main-sheet.png')})`
                 },
+				animationLookUpTable:{
+					0: '',
+					10: '',
+					11: '',
+					12: '',
+					25: '',
+					26: '',
+					27: '',
+					99: 'flag'
+				},
                 backgroundSpriteTransform:{
                     0: '',
                     10: Math.random() < 0.5 ? 'rotateY(180deg)' : '',
@@ -359,6 +369,19 @@
         }
         to {
             transform: rotate(359deg);
+        }
+    }
+
+    .flag{
+        animation: moveSpriteSheet 0.9s steps(3) infinite;
+    }
+
+    @keyframes moveSpriteSheet {
+        from {
+            background-position-x: 150px
+        }
+        to {
+            background-position-x: 0;
         }
     }
 </style>
