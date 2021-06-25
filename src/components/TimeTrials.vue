@@ -55,6 +55,11 @@
                 <button @click="closeMapInput(false)" class="set-map-back-button"><-</button>
                 <button @click="setNewMap(newMapString)" class="set-map-button">SET MAP</button>
             </div>
+            <div class="main-map-button-container">
+                <button class="set-map-button">
+                    <a target="_blank" href="https://ssr2099-map-maker.netlify.app/">MAP MAKER</a>
+                </button>
+            </div>
         </div>
 
         <div class="board" :style="timeTrialBoardStyle" v-if="timeTrialSelected !== undefined">
@@ -1329,7 +1334,7 @@
     }
 
     .main-map-input{
-        height: 85%;
+        height: 70%;
         width: 95%;
         border-radius: 2px;
         display: flex;
@@ -1390,9 +1395,7 @@
         cursor: pointer;
     }
 
-
-
-
-
-
+    a{
+        color: white;
+    }
 </style>
